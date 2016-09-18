@@ -434,19 +434,15 @@ public class AuctionYourStuff extends AppCompatActivity implements
             try {
                 switch (choice) {
                     case 1:
-                        //Toast.makeText(AuctionYourStuff.this, "Compress done", Toast.LENGTH_SHORT).show();
                         Bitmap bitmap1 = MediaStore.Images.Media.getBitmap(getContentResolver(), compressUri1);
                         itemImage1.setScaleType(ImageView.ScaleType.CENTER_CROP);
                         itemImage1.setImageBitmap(bitmap1);
-                        //uploadImage(compressUri1);
                         break;
 
                     case 2:
-                        //Toast.makeText(AuctionYourStuff.this, "Compress done", Toast.LENGTH_SHORT).show();
                         Bitmap bitmap2 = MediaStore.Images.Media.getBitmap(getContentResolver(), compressUri2);
                         itemImage2.setScaleType(ImageView.ScaleType.CENTER_CROP);
                         itemImage2.setImageBitmap(bitmap2);
-                        //uploadImage(compressUri2);
                         break;
 
                     case 3:
