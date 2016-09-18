@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:wheel="http://schemas.android.com/apk/res-auto"
+    tools:context="com.tradesomev4.tradesomev4.ChosenCategory"
+    android:orientation="vertical"
+    android:id="@+id/content_main">
+
+
+    <include
+        android:id="@+id/app_bar_messaging"
+        layout="@layout/app_bar_messaging"/>
+
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/main_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
+        <TextView
+            android:id="@+id/tv_items_here"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Items Appear Here."
+            android:textSize="24dp"
+            android:gravity="center"/>
+
+        <TextView
+            android:id="@+id/tv_internet_connection"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Please check your Internet connection."
+            android:textSize="24dp"
+            android:gravity="center"/>
+
+        <com.pnikosis.materialishprogress.ProgressWheel
+            android:id="@+id/progress_wheel"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:layout_gravity="center"
+            wheel:matProg_barColor="#5588FF"
+            wheel:matProg_progressIndeterminate="true"/>
+
+    </FrameLayout>
+
+
+</LinearLayout>

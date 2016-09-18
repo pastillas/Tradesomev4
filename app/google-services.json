@@ -1,0 +1,143 @@
+{
+  "project_info": {
+    "project_number": "901040923243",
+    "firebase_url": "https://project-7989634332026765831.firebaseio.com",
+    "project_id": "project-7989634332026765831",
+    "storage_bucket": "project-7989634332026765831.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:901040923243:android:ab8d7b78753b74bc",
+        "android_client_info": {
+          "package_name": "com.tradesomev4.tradesomev4"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "901040923243-hfo3uhmero6q3u2ke5oaouk16h4ngdgh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tradesomev4.tradesomev4",
+            "certificate_hash": "7E8A54A33817797590D74D4101EBA9FA4902E7DC"
+          }
+        },
+        {
+          "client_id": "901040923243-g3qbi16p2sbdr3qtspc5vjlk77trboh1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCuyveus4owkFuPFaYL4bJvBImHAm0chVg"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "901040923243-g3qbi16p2sbdr3qtspc5vjlk77trboh1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:901040923243:android:8e921b5ebb892e6a",
+        "android_client_info": {
+          "package_name": "tradesomev5.tradesomev5.Login"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "901040923243-fg7nvcqsdra4gbqg4eaasd3kn8dhnhj2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "tradesomev5.tradesomev5.Login",
+            "certificate_hash": "7E8A54A33817797590D74D4101EBA9FA4902E7DC"
+          }
+        },
+        {
+          "client_id": "901040923243-g3qbi16p2sbdr3qtspc5vjlk77trboh1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCuyveus4owkFuPFaYL4bJvBImHAm0chVg"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "901040923243-g3qbi16p2sbdr3qtspc5vjlk77trboh1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:901040923243:android:fcc0ddfbc2541184",
+        "android_client_info": {
+          "package_name": "tradesomev5.tradesomev5"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "901040923243-45k9jtnu8206icvrfoo2h04omg9lchl1.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "tradesomev5.tradesomev5",
+            "certificate_hash": "7E8A54A33817797590D74D4101EBA9FA4902E7DC"
+          }
+        },
+        {
+          "client_id": "901040923243-g3qbi16p2sbdr3qtspc5vjlk77trboh1.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCuyveus4owkFuPFaYL4bJvBImHAm0chVg"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "901040923243-g3qbi16p2sbdr3qtspc5vjlk77trboh1.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

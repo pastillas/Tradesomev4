@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    tools:context="com.tradesomev4.tradesomev4.MyAuctionsBids"
+    android:orientation="vertical"
+    android:id="@+id/content_main">
+
+    <include
+        android:id="@+id/app_bar"
+        layout="@layout/app_bar_sliding_layout" />
+
+    <it.neokree.materialtabs.MaterialTabHost
+        android:id="@+id/materialTabHost"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        app:accentColor="@color/colorAccent"
+        app:primaryColor="@color/colorPrimary"
+        app:textColor="#FFFFFF"/>
+
+    <android.support.v4.view.ViewPager
+        android:id="@+id/pager"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1 "
+        android:elevation="5dp">
+
+    </android.support.v4.view.ViewPager>
+
+</LinearLayout>

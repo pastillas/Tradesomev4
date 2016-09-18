@@ -1,0 +1,391 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="com.tradesomev4.tradesomev4">
+
+    <uses-sdk
+        android:minSdkVersion="21"
+        android:targetSdkVersion="24" />
+
+    <meta-data
+        android:name="com.facebook.sdk.ApplicationId"
+        android:value="@string/facebook_app_id" />
+
+    <uses-permission android:name="android.permission.VIBRATE" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <uses-feature
+        android:name="android.hardware.camera2"
+        android:required="false" />
+    <uses-feature
+        android:glEsVersion="0x00020000"
+        android:required="true" />
+
+    <application
+        android:name="android.support.multidex.MultiDexApplication"
+        android:allowBackup="true"
+        android:icon="@drawable/logo"
+        android:label="@string/app_name"
+        android:screenOrientation="portrait"
+        android:supportsRtl="true"
+        android:theme="@style/loginTheme">
+        <meta-data
+            android:name="com.facebook.sdk.ApplicationId"
+            android:value="@string/facebook_app_id" />
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+
+        <!-- <activity android:name=".MonitorConnectivity"></activity> -->
+
+        <activity
+            android:name=".SplashScreen"
+            android:theme="@style/SplashTheme">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <activity android:name=".CreateAccount" />
+        <activity
+            android:name="com.facebook.FacebookActivity"
+            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
+            android:label="@string/app_name"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
+        <activity android:name=".Search" />
+        <activity
+            android:name=".MainActivity"
+            android:label="@string/app_name"
+            android:theme="@style/AppTheme.NoActionBar">
+            <intent-filter>
+                <action android:name="com.tradesomev4.tradesomev4.MainActivity" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".AuctionYourStuff"
+            android:label="Auction Your Stuff"
+            android:theme="@style/AppTheme.Tradesome">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+
+            <intent-filter>
+                <action android:name="com.tradesomev4.tradesomev4.AuctionYourStuff" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <!--
+             The API key for Google Maps-based APIs is defined as a string resource.
+             (See the file "res/values/google_maps_api.xml").
+             Note that the API key is linked to the encryption key used to sign the APK.
+             You need a different API key for each encryption key, including the release key that is used to
+             sign the APK for publishing.
+             You can define the keys for the debug and release targets in src/debug/ and src/release/. 
+        -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
+
+        <activity
+            android:name=".m_Helpers.GPSTracker"
+            android:label="Current Location"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+
+            <intent-filter>
+                <action android:name="com.tradesomev4.tradesomev4.GPSTracker" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ReviewAndPublish"
+            android:label="Review and Publish"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".AuctionYourStuff" />
+
+            <intent-filter>
+                <action android:name="com.tradesomev4.tradesomev4.ReviewAndPublish" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".UploadSample"
+            android:label="Upload Sample"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value=".MainActivity" />
+
+            <intent-filter>
+                <action android:name="com.tradesomev4.tradesomev4.UploadSample" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".Categories"
+            android:label="Categories"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.tradesomev4.tradesomev4.MainActivity" />
+
+            <intent-filter>
+                <action android:name="com.tradesomev4.tradesomev4.Categories" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ViewItem"
+            android:label="View Item Details"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.tradesomev4.tradesomev4.MainActivity" />
+
+            <intent-filter>
+                <action android:name="com.tradesomev4.tradesomev4.ViewItem" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".BidNow"
+            android:label="Bid Now"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.tradesomev4.tradesomev4.MainActivity" />
+
+            <intent-filter>
+                <action android:name="com.tradesomev4.tradesomev4.BidNow" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".UserNotification"
+            android:label="Notifications"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.tradesomev4.tradesomev4.MainActivity" />
+
+            <intent-filter>
+                <action android:name="com.tradesomev4.tradesomev4.UserNotification" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ViewItemLocation"
+            android:label="View Item Location"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.tradesomev4.tradesomev4.MainActivity" />
+
+            <intent-filter>
+                <action android:name="com.tradesomev4.tradesomev4.ViewItemLocation" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".Messages"
+            android:label="Chat"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.tradesomev4.tradesomev4.MainActivity" />
+
+            <intent-filter>
+                <action android:name="com.tradesomev4.tradesomev4.Messages" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".SearchUser"
+            android:label="Search User"
+            android:parentActivityName=".Messages"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.tradesomev4.tradesomev4.Messages" />
+
+            <intent-filter>
+                <action android:name="com.tradesomev4.tradesomev4.SearchUser" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".SendUserMessage"
+            android:label="Chat"
+            android:parentActivityName=".SearchUser"
+            android:theme="@style/AppTheme.Tradesome">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.tradesomev4.tradesomev4.SearchUser" />
+
+            <intent-filter>
+                <action android:name="com.tradesomev4.tradesomev4.SendUserMessage" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".MyProfile"
+            android:label="View Profile"
+            android:theme="@style/AppTheme.Tradesome">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.tradesomev4.tradesomev4.MainActivity" />
+
+            <intent-filter>
+                <action android:name="com.tradesomev4.tradesomev4.MyProfile" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".MyLocation"
+            android:label="@string/title_activity_my_location" />
+        <activity
+            android:name=".ViewUserProfile"
+            android:label="View Profile"
+            android:theme="@style/AppTheme.Tradesome">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.tradesomev4.tradesomev4.MainActivity" />
+
+            <intent-filter>
+                <action android:name="com.tradesomev4.tradesomev4.ViewUserProfile" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".MyAuctionsBids"
+            android:label="My Auctions and Bids"
+            android:theme="@style/AppTheme.Tradesome">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.tradesomev4.tradesomev4.MainActivity" />
+
+            <intent-filter>
+                <action android:name="com.tradesomev4.tradesomev4.MyAuctionsBids" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".EditPost"
+            android:label="Edit Item Details"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.tradesomev4.tradesomev4.MyAuctionsBids" />
+
+            <intent-filter>
+                <action android:name="com.tradesomev4.tradesomev4.EditPost" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".UserAuctionsBids"
+            android:theme="@style/AppTheme.Tradesome">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.tradesomev4.tradesomev4.MainActivity" />
+
+            <intent-filter>
+                <action android:name="com.tradesomev4.tradesomev4.UserAuctionsBids" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ViewMyItem"
+            android:label="View Item Details"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.tradesomev4.tradesomev4.MainActivity" />
+
+            <intent-filter>
+                <action android:name="com.tradesomev4.tradesomev4.ViewMyItem" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".ChosenCategory"
+            android:theme="@style/AppTheme.Tradesome">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.tradesomev4.tradesomev4.Categories" />
+
+            <intent-filter>
+                <action android:name="com.tradesomev4.tradesomev4.ChosenCategory" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".FileItemComplain"
+            android:label="File a Complain"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.tradesomev4.tradesomev4.MainActivity" />
+
+            <intent-filter>
+                <action android:name="com.tradesomev4.tradesomev4.FileAReport" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+        <activity
+            android:name=".SearchItem"
+            android:label="Search Item"
+            android:theme="@style/AppTheme">
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.tradesomev4.tradesomev4.MainActivity" />
+
+            <intent-filter>
+                <action android:name="com.tradesomev4.tradesomev4.SearchItem" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <service
+            android:name=".m_Helpers.LocationService"
+            android:enabled="true"
+            android:exported="true"></service>
+    </application>
+
+</manifest>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/cont_following"
+    android:layout_width="match_parent"
+    android:layout_height="60dp"
+    android:gravity="center_vertical|left"
+    android:background="@drawable/background_state_drawable"
+    android:clickable="true"
+    android:orientation="horizontal"
+    android:layout_marginBottom="8dp"
+    android:paddingLeft="16dp">
+
+    <ImageView
+        android:id="@+id/iv_following_image"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:src="@android:drawable/ic_menu_camera" />
+
+    <TextView
+        android:id="@+id/tv_following_name"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center_vertical|left"
+        android:paddingLeft="8dp"
+        android:text="Name"
+        android:textSize="16sp" />
+
+</LinearLayout>

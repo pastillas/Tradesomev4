@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_home"
+            android:icon="@drawable/ic_menu_home"
+            android:title="Home"/>
+        <item
+            android:id="@+id/nav_auctions_bids"
+            android:icon="@drawable/auction"
+            android:title="My Auctions and Bids" />
+        <item
+            android:id="@+id/nav_auction"
+            android:icon="@drawable/ic_menu_camera"
+            android:title="Auction Your Stuff" />
+        <item
+            android:id="@+id/nav_notifiction"
+            android:icon="@drawable/ic_menu_notifications"
+            android:title="Notifications" />
+        <item
+            android:id="@+id/nav_messages"
+            android:icon="@drawable/ic_menu_send"
+            android:title="Chat" />
+        <item
+            android:id="@+id/nav_profile"
+            android:icon="@drawable/ic_menu_profile"
+            android:title="Profile" />
+        <item
+            android:id="@+id/nav_categories"
+            android:icon="@drawable/ic_menu_categories"
+            android:title="Categories" />
+
+        <item
+            android:id="@+id/nav_gps"
+            android:icon="@drawable/ic_gps_fixed_black_36dp"
+            android:title="Settings" />
+
+        <item
+            android:id="@+id/nav_sign_out"
+            android:icon="@drawable/ic_exit_to_app_black_36dp"
+            android:title="Sign Out" />
+    </group>
+
+</menu>

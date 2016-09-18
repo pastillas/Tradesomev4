@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="dialogUPloagIMageItems">
+        <item>Camera</item>
+        <item>Library</item>
+    </string-array>
+
+    <string-array name="userComplain">
+        <item>This is a fake account</item>
+        <item>This person is annoying me</item>
+        <item>This person doesn\'t perform proper manners on the community</item>
+        <item>They\'re posting inappropriate or offensive posts</item>
+    </string-array>
+
+    <string-array name="tabs">
+        <item>MY PROFILE</item>
+        <item>FOLLOWERS</item>
+        <item>FOLLOWING</item>
+    </string-array>
+
+    <string-array name="tabsViewUser">
+        <item>PROFILE</item>
+        <item>FOLLOWING</item>
+        <item>FOLLOWERS</item>
+    </string-array>
+
+    <string-array name="tabsAuctionBid">
+        <item>AUCTIONS</item>
+        <item>BIDS</item>
+    </string-array>
+
+    <string-array name="chooseCategory">
+        <item>All</item>
+        <item>Antiques</item>
+        <item>Jewelries</item>
+        <item>Commodities</item>
+        <item>Gadgets</item>
+        <item>Cars and Motors</item>
+        <item>Rare Collectibles</item>
+        <item>Livestock</item>
+        <item>Industrial Machinery</item>
+        <item>Others</item>
+    </string-array>
+
+
+    <string-array name="categories">
+        <item>Antiques</item>
+        <item>Jewelries</item>
+        <item>Commodities</item>
+        <item>Gadgets</item>
+        <item>Cars and Motors</item>
+        <item>Rare Collectibles</item>
+        <item>Livestock</item>
+        <item>Industrial Machinery</item>
+        <item>Others</item>
+    </string-array>
+    
+    <string-array name="reason_for_report">
+        <item>Adult Material</item>
+        <item>Illegal items</item>
+    </string-array>
+
+    <string-array name="adult_material">
+        <item>Images of nudity</item>
+        <item>Items that can\'t be listed at all</item>
+        <item>Pornography</item>
+        <item>Used underwear</item>
+        <item>Other sexual or adult items</item>
+    </string-array>
+
+    <string-array name="illegal_items">
+        <item>Drugs and drug paraphernalia</item>
+        <item>Ammunition</item>
+        <item>Assault weapons</item>
+        <item>Explosives</item>
+        <item>Airsoft, replica or imitation firearms</item>
+    </string-array>
+</resources>
