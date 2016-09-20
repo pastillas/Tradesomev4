@@ -65,6 +65,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.tradesomev4.tradesomev4.m_Helpers.Connectivity;
 import com.tradesomev4.tradesomev4.m_Helpers.Dialogs;
 import com.tradesomev4.tradesomev4.m_Helpers.GPSTracker;
@@ -167,15 +168,32 @@ public /*abstract*/ class CreateAccount extends FragmentActivity implements Goog
 
                         snackbars.isAccountBlocked();
                     }else{
-                        loadingDialog.dismiss();
-                        toMainActivity();
+                        String token = FirebaseInstanceId.getInstance().getToken();
+                        databaseReference.child("users").child(fUser.getUid()).child("fcmToken").setValue(token).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                loadingDialog.dismiss();
+                                toMainActivity();
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                loadingDialog.dismiss();
+                                if(type == 0)
+                                    signoutFacebook();
+                                snackbars.showCheckYourConnection();
+                                FirebaseAuth.getInstance().signOut();
+                            }
+                        });
                     }
                 }else{
+                    String token  = FirebaseInstanceId.getInstance().getToken();
                     user.setId(fUser.getUid());
                     user.setName(fUser.getDisplayName());
                     user.setBlocked(false);
                     user.setImage(fUser.getPhotoUrl().toString());
                     user.setEmail(fUser.getEmail());
+                    user.setFcmToken(token);
 
                     if(String.valueOf(user.getLatitude()) != null && String.valueOf(user.getLongitude()) != null){
                         databaseReference.child("users").child(fUser.getUid()).setValue(user).addOnCompleteListener(new OnCompleteListener<Void>() {
@@ -238,9 +256,15 @@ public /*abstract*/ class CreateAccount extends FragmentActivity implements Goog
             if(gps_enabled && network_enabled && isConnected) {
                 Log.d(DEBUG_TAG, "AUTH: onAuthStateChanged: signed_in:" + fUser.getUid());
                 checkUserIfExists(type);
+
+
+                Log.d(DEBUG_TAG, "PUTANG INA FACEBOOK: TRUE");
             }else{
                 loadingDialog.dismiss();
                 signOut();
+
+                Log.d(DEBUG_TAG, "PUTANG INA FACEBOOK: FALSE");
+
 
                 if(type == 0)
                     signoutFacebook();
@@ -407,8 +431,12 @@ public /*abstract*/ class CreateAccount extends FragmentActivity implements Goog
 
                         if (!task.isSuccessful()) {
                             Log.w(DEBUG_TAG, "signInWithCredential", task.getException());
+
                             loadingDialog.dismiss();
+                            signoutFacebook();
                             signOut();
+
+                            snackbars.isEmailAlreadyUsed();
                         }else{
                             getFirebaseUser(0);
                         }
@@ -465,6 +493,7 @@ public /*abstract*/ class CreateAccount extends FragmentActivity implements Goog
                         // If sign in fails, display a message to the user. If sign in succeeds
                         // the auth state listener will be notified and logic to handle the
                         // signed in user can be handled in the listener.
+
                         if (!task.isSuccessful()) {
 
                             Log.w(DEBUG_TAG, "signInWithCredential", task.getException());

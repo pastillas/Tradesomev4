@@ -17,6 +17,15 @@ public class User {
     private double latitude;
     private double longitude;
     private boolean blocked;
+    private String fcmToken;
+
+    public String getFcmToken() {
+        return fcmToken;
+    }
+
+    public void setFcmToken(String fcmToken) {
+        this.fcmToken = fcmToken;
+    }
 
     public boolean isBlocked() {
         return blocked;

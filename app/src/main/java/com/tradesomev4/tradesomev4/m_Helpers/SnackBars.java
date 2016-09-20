@@ -119,4 +119,18 @@ public class SnackBars {
 
         Snackbar.make(view, tmp, Snackbar.LENGTH_LONG).show();
     }
+
+    public void isEmailAlreadyUsed(){
+        String str = "@ Sorry, this account already exists with the same email address but different sign-in credentials.";
+        SpannableString tmp = new SpannableString(str);
+
+        int index = str.indexOf('@');
+        Drawable icon = context.getResources().getDrawable(R.drawable.ic_warning_white_24dp);
+        icon.setBounds(0, 0, icon.getIntrinsicWidth(), icon.getIntrinsicHeight());
+        ImageSpan span = new ImageSpan(icon, ImageSpan.ALIGN_BOTTOM);
+
+        tmp.setSpan(span, index, index + 1, Spannable.SPAN_INCLUSIVE_EXCLUSIVE);
+
+        Snackbar.make(view, tmp, 5000).show();
+    }
 }
