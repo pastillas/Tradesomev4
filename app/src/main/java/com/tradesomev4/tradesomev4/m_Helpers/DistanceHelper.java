@@ -7,7 +7,7 @@ import com.google.maps.android.SphericalUtil;
  * Created by Pastillas-Boy on 7/25/2016.
  */
 public class DistanceHelper {
-    private static final Double RADIUS = 100.0;
+    private static final Double RADIUS = 20000.0;
 
     public static double getDistance(LatLng user1, LatLng user2){
         double distance = SphericalUtil.computeDistanceBetween(user1, user2);
