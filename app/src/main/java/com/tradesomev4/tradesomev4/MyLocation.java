@@ -1,5 +1,6 @@
 package com.tradesomev4.tradesomev4;
 
+import android.content.Intent;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 
@@ -47,5 +48,14 @@ public class MyLocation extends FragmentActivity implements OnMapReadyCallback {
         LatLng myLocation = new LatLng(extras.getDouble(LAT_KEY), extras.getDouble(LONG_KEY));
         mMap.addMarker(new MarkerOptions().position(myLocation).title(extras.getString(NAME_KEY)));
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(myLocation, 12));
+    }
+
+    @Override
+    public void onBackPressed() {
+
+        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        startActivity(intent);
+
+        super.onBackPressed();
     }
 }

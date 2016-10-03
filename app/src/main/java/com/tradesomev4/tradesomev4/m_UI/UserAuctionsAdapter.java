@@ -22,6 +22,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.pnikosis.materialishprogress.ProgressWheel;
 import com.tradesomev4.tradesomev4.BidNow;
@@ -70,21 +71,23 @@ public class UserAuctionsAdapter extends RecyclerView.Adapter<UserAuctionsAdapte
     boolean isConnectionRestoredShowed;
     SnackBars snackBars;
     CountDownTimer timeOuttimer;
+    ValueEventListener auctionListener;
+    ValueEventListener bidsListener;
     int puta;
 
 
-    public void timeOut(){
+    public void timeOut() {
         timeOuttimer = new CountDownTimer(30000, 1000) {
             @Override
             public void onTick(long l) {
-                if(auctionHistories.size() > 0){
+                if (auctionHistories.size() > 0) {
                     hideAll();
                 }
             }
 
             @Override
             public void onFinish() {
-                if(isConnected && auctionHistories.size() == 0)
+                if (isConnected && auctionHistories.size() == 0)
                     showItemsHere();
             }
         };
@@ -93,7 +96,7 @@ public class UserAuctionsAdapter extends RecyclerView.Adapter<UserAuctionsAdapte
     }
 
 
-    public void timer(){
+    public void timer() {
         final CountDownTimer c = new CountDownTimer(1000, 1000) {
 
             @Override
@@ -104,19 +107,19 @@ public class UserAuctionsAdapter extends RecyclerView.Adapter<UserAuctionsAdapte
             public void onFinish() {
                 Connectivity connectivity = new Connectivity(context.getApplicationContext());
 
-                if(!connectivity.isConnected()) {
+                if (!connectivity.isConnected()) {
                     isConnectionRestoredShowed = false;
                     isConnected = false;
 
-                    if(puta == 1)
+                    if (puta == 1)
                         puta++;
 
-                    if(!isConnectionDisabledShowed){
+                    if (!isConnectionDisabledShowed) {
                         //snackBars.showConnectionDisabledDialog();
                         isConnectionDisabledShowed = true;
                     }
 
-                    if(timeOuttimer != null)
+                    if (timeOuttimer != null)
                         timeOuttimer.cancel();
 
                     showConnectionError();
@@ -124,11 +127,11 @@ public class UserAuctionsAdapter extends RecyclerView.Adapter<UserAuctionsAdapte
                     isConnected = true;
                     isConnectionDisabledShowed = false;
 
-                    if(puta != 1 && !isConnectionRestoredShowed){
+                    if (puta != 1 && !isConnectionRestoredShowed) {
                         //snackBars.showConnectionRestored();
                         isConnectionRestoredShowed = true;
                     }
-                    if(auctionHistories.size() == 0 && puta == 2){
+                    if (auctionHistories.size() == 0 && puta == 2) {
                         Log.d(DEBUG_TAG, "PUTA 2: TRUE");
                         hideAll();
                         showLoading();
@@ -137,7 +140,7 @@ public class UserAuctionsAdapter extends RecyclerView.Adapter<UserAuctionsAdapte
                     }
                 }
 
-                if(auctionHistories.size() > 0){
+                if (auctionHistories.size() > 0) {
                     //hideAll();
                 }
 
@@ -146,58 +149,58 @@ public class UserAuctionsAdapter extends RecyclerView.Adapter<UserAuctionsAdapte
         }.start();
     }
 
-    public void hideAll(){
-        if(progress_wheel.getVisibility() == View.VISIBLE)
+    public void hideAll() {
+        if (progress_wheel.getVisibility() == View.VISIBLE)
             progress_wheel.setVisibility(View.GONE);
 
-        if(tv_items_here.getVisibility() == View.VISIBLE)
+        if (tv_items_here.getVisibility() == View.VISIBLE)
             tv_items_here.setVisibility(View.GONE);
 
-        if(tv_internet_connection.getVisibility() == View.VISIBLE)
+        if (tv_internet_connection.getVisibility() == View.VISIBLE)
             tv_internet_connection.setVisibility(View.GONE);
     }
 
-    public void showItemsHere(){
-        if(progress_wheel.getVisibility() == View.VISIBLE)
+    public void showItemsHere() {
+        if (progress_wheel.getVisibility() == View.VISIBLE)
             progress_wheel.setVisibility(View.GONE);
 
-        if(tv_internet_connection.getVisibility() == View.VISIBLE)
+        if (tv_internet_connection.getVisibility() == View.VISIBLE)
             tv_internet_connection.setVisibility(View.GONE);
 
-        if(tv_items_here.getVisibility() == View.GONE)
+        if (tv_items_here.getVisibility() == View.GONE)
             tv_items_here.setVisibility(View.VISIBLE);
     }
 
-    public void showLoading(){
-        if(progress_wheel.getVisibility() == View.GONE)
+    public void showLoading() {
+        if (progress_wheel.getVisibility() == View.GONE)
             progress_wheel.setVisibility(View.VISIBLE);
 
-        if(tv_internet_connection.getVisibility() == View.VISIBLE)
+        if (tv_internet_connection.getVisibility() == View.VISIBLE)
             tv_internet_connection.setVisibility(View.GONE);
 
-        if(tv_items_here.getVisibility() == View.VISIBLE)
+        if (tv_items_here.getVisibility() == View.VISIBLE)
             tv_items_here.setVisibility(View.GONE);
     }
 
-    public void showConnectionError(){
-        if(progress_wheel.getVisibility() == View.VISIBLE)
+    public void showConnectionError() {
+        if (progress_wheel.getVisibility() == View.VISIBLE)
             progress_wheel.setVisibility(View.GONE);
 
-        if(tv_items_here.getVisibility() == View.VISIBLE)
+        if (tv_items_here.getVisibility() == View.VISIBLE)
             tv_items_here.setVisibility(View.GONE);
 
-        if(tv_internet_connection.getVisibility() == View.GONE && auctionHistories.size() == 0)
+        if (tv_internet_connection.getVisibility() == View.GONE && auctionHistories.size() == 0)
             tv_internet_connection.setVisibility(View.VISIBLE);
 
     }
 
-    public void addAuctionHistory(int position, AuctionHistory history){
+    public void addAuctionHistory(int position, AuctionHistory history) {
         auctionHistories.add(position, history);
         notifyItemInserted(position);
     }
 
     public UserAuctionsAdapter(Context context, String userId, boolean isAttached, RecyclerView recyclerView, RequestManager glide,
-                               final TextView tv_items_here, final TextView tv_internet_connection, final ProgressWheel progress_wheel, View view){
+                               final TextView tv_items_here, final TextView tv_internet_connection, final ProgressWheel progress_wheel, View view) {
         this.userId = userId;
         this.context = context;
         this.inflater = LayoutInflater.from(context);
@@ -209,7 +212,7 @@ public class UserAuctionsAdapter extends RecyclerView.Adapter<UserAuctionsAdapte
         this.recyclerView = recyclerView;
         this.glide = glide;
         this.tv_items_here = tv_items_here;
-        this.tv_internet_connection= tv_internet_connection;
+        this.tv_internet_connection = tv_internet_connection;
         this.progress_wheel = progress_wheel;
         isConnectionDisabledShowed = false;
         isConnectionRestoredShowed = false;
@@ -268,23 +271,27 @@ public class UserAuctionsAdapter extends RecyclerView.Adapter<UserAuctionsAdapte
         View view = inflater.inflate(R.layout.user_auctions_model, parent, false);
         MyAuctionsHolder holder = new MyAuctionsHolder(view);
 
-        if(position > prevPos){
+        /*
+        if (position > prevPos) {
             AnimationUtil.animate(holder, true);
-        }else{
+        } else {
             AnimationUtil.animate(holder, false);
-        }
+        }*/
 
         return holder;
     }
 
     @Override
     public void onBindViewHolder(final MyAuctionsHolder holder, final int position) {
-        mDatabase.child("auction").child(auctionHistories.get(position).getAuctionId()).addListenerForSingleValueEvent(new ValueEventListener() {
+        AnimationUtil.setFadeAnimation(holder.itemView);
+        final Query auctionRef = mDatabase.child("auction").child(auctionHistories.get(position).getAuctionId());
+        final Query bidsRef = mDatabase.child("auction").child(auctionHistories.get(position).getAuctionId()).child("bid");
+        auctionListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Auction auction = dataSnapshot.getValue(Auction.class);
 
-                if(!TextUtils.isEmpty(auction.image1Uri)){
+                if (!TextUtils.isEmpty(auction.image1Uri)) {
                     glide.load(auction.getImage1Uri())
                             .asBitmap().centerCrop()
                             .into(holder.itemImage);
@@ -300,25 +307,48 @@ public class UserAuctionsAdapter extends RecyclerView.Adapter<UserAuctionsAdapte
 
                 String date = CalendarUtils.ConvertMilliSecondsToFormattedDate(auction.getDirectoryName());
                 holder.datePost.setText(date);
+
+                bidsListener = new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        holder.bids.setText(" " + String.valueOf(dataSnapshot.getChildrenCount()));
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                };
+                bidsRef.addValueEventListener(bidsListener);
+
+
+                if (auction.isHidden()) {
+                    try {
+                        for (int i = 0; i < auctionHistories.size(); i++) {
+                            if (auctionHistories.get(position).getAuctionId().equals(auctionHistories.get(i).getAuctionId())) {
+                                auctionHistories.remove(i);
+                                notifyDataSetChanged();
+                                bidsRef.removeEventListener(bidsListener);
+                                auctionRef.removeEventListener(auctionListener);
+                                if (auctionHistories.size() == 0)
+                                    timeOut();
+                                break;
+                            }
+                        }
+                        return;
+                    } catch (IndexOutOfBoundsException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
 
             @Override
             public void onCancelled(DatabaseError databaseError) {
 
             }
-        });
+        };
+        auctionRef.addValueEventListener(auctionListener);
 
-        mDatabase.child("auction").child(auctionHistories.get(position).getAuctionId()).child("bid").addValueEventListener(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                holder.bids.setText(" " + String.valueOf(dataSnapshot.getChildrenCount()));
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
 
         final Bundle extras = new Bundle();
         extras.putString(EXTRAS_AUCTION_ID, auctionHistories.get(position).getAuctionId());
@@ -346,7 +376,7 @@ public class UserAuctionsAdapter extends RecyclerView.Adapter<UserAuctionsAdapte
         holder.reportItem.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(!fUser.getUid().equals(auctionHistories.get(position).getPosterId())) {
+                if (!fUser.getUid().equals(auctionHistories.get(position).getPosterId())) {
                     Intent intent = new Intent(context, FileItemComplain.class);
                     intent.putExtra(EXTRAS_BUNDLE, extras);
                     context.startActivity(intent);
@@ -370,9 +400,9 @@ public class UserAuctionsAdapter extends RecyclerView.Adapter<UserAuctionsAdapte
             }
         });
 
-        if(position > prevPos){
+        if (position > prevPos) {
             AnimationUtil.animate(holder, true);
-        }else{
+        } else {
             AnimationUtil.animate(holder, false);
         }
 
@@ -384,7 +414,7 @@ public class UserAuctionsAdapter extends RecyclerView.Adapter<UserAuctionsAdapte
         return auctionHistories.size();
     }
 
-    class MyAuctionsHolder extends RecyclerView.ViewHolder{
+    class MyAuctionsHolder extends RecyclerView.ViewHolder {
         TextView posterName;
         ImageView posterImage;
         ImageView itemImage;
@@ -399,9 +429,9 @@ public class UserAuctionsAdapter extends RecyclerView.Adapter<UserAuctionsAdapte
             super(itemView);
 
             reportItem = (ImageView) itemView.findViewById(R.id.iv_report_item);
-            posterName = (TextView)itemView.findViewById(R.id.poster_name);
-            posterImage = (ImageView)itemView.findViewById(R.id.poster_image);
-            itemImage = (ImageView)itemView.findViewById(R.id.item_image_view1);
+            posterName = (TextView) itemView.findViewById(R.id.poster_name);
+            posterImage = (ImageView) itemView.findViewById(R.id.poster_image);
+            itemImage = (ImageView) itemView.findViewById(R.id.item_image_view1);
             title = (TextView) itemView.findViewById(R.id.tv_item_title);
             bids = (TextView) itemView.findViewById(R.id.tv_total_bids);
             datePost = (TextView) itemView.findViewById(R.id.tv_date_post);
@@ -410,7 +440,7 @@ public class UserAuctionsAdapter extends RecyclerView.Adapter<UserAuctionsAdapte
         }
     }
 
-    public void initSwipe(){
+    public void initSwipe() {
         ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
             public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
@@ -427,12 +457,12 @@ public class UserAuctionsAdapter extends RecyclerView.Adapter<UserAuctionsAdapte
                 extras.putString(EXTRAS_AUCTION_ID, auctionHistory.getAuctionId());
                 extras.putString(EXTRAS_POSTER_ID, auctionHistory.getPosterId());
 
-                if(direction == ItemTouchHelper.LEFT){
+                if (direction == ItemTouchHelper.LEFT) {
                     Intent intent = new Intent(context, BidNow.class);
                     intent.putExtra(EXTRAS_BUNDLE, extras);
                     context.startActivity(intent);
-                }else{
-                    if(!fUser.getUid().equals(auctionHistories.get(position).getPosterId())) {
+                } else {
+                    if (!fUser.getUid().equals(auctionHistories.get(position).getPosterId())) {
                         Intent intent = new Intent(context, FileItemComplain.class);
                         intent.putExtra(EXTRAS_BUNDLE, extras);
                         context.startActivity(intent);

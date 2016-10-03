@@ -25,6 +25,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.pnikosis.materialishprogress.ProgressWheel;
 import com.tradesomev4.tradesomev4.m_Helpers.DateHelper;
+import com.tradesomev4.tradesomev4.m_Model.Notif;
 import com.tradesomev4.tradesomev4.m_Model.UserMessage;
 import com.tradesomev4.tradesomev4.m_UI.SendUserMesageAdapter;
 
@@ -47,7 +48,7 @@ public class SendUserMessage extends AppCompatActivity implements View.OnClickLi
     private DatabaseReference mDatabase;
     private FloatingActionButton fab;
     Toolbar toolbar;
-    private static final int messagesLimit = 200;
+    private static final int messagesLimit = 50;
     private long messageCount;
     TextView tv_message;
     TextView tv_items_here;
@@ -80,11 +81,6 @@ public class SendUserMessage extends AppCompatActivity implements View.OnClickLi
     }
 
     private void initViewDb() {
-        toolbar = (Toolbar) findViewById(R.id.app_bar_messaging);
-        setSupportActionBar(toolbar);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-
-
         content_main = findViewById(R.id.content_main);
         tv_items_here = (TextView) findViewById(R.id.tv_items_here);
         tv_internet_connection = (TextView) findViewById(R.id.tv_internet_connection);
@@ -99,15 +95,18 @@ public class SendUserMessage extends AppCompatActivity implements View.OnClickLi
         String name = extras.getString(USER_NAME_KEY);
         getSupportActionBar().setTitle(name);
 
+
         boolean isAttache;
         onAttachedToWindow();
         isAttache = true;
 
         recyclerView = (RecyclerView) findViewById(R.id.rv_send_user_message);
         adapter = new SendUserMesageAdapter(this, extras.getString(USER_IMAGE_KEY), extras.getString(USER_ID_KEY), recyclerView, isAttache, Glide.with(this), tv_items_here, tv_internet_connection, progress_wheel, content_main);
+        recyclerView.setAdapter(adapter);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         linearLayoutManager.setStackFromEnd(true);
-        recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(linearLayoutManager);
+
 
         findViewById(R.id.bt_send).setOnClickListener(this);
         tv_message = (TextView)findViewById(R.id.tv_message);
@@ -135,6 +134,19 @@ public class SendUserMessage extends AppCompatActivity implements View.OnClickLi
         return super.onOptionsItemSelected(item);
     }
 
+    public void addNotification(Notif notif){
+        mDatabase.child("users").child(extras.getString(USER_ID_KEY)).child("notifs").child(fUser.getUid()).setValue(notif);
+    }
+
+    public Notif newNotif(String type) {
+        Notif notif = new Notif();
+        notif.setType(type);
+        notif.setRead(false);
+        notif.setDate(DateHelper.getCurrentDateInMil());
+
+        return notif;
+    }
+
     public void sendMessage() {
         if(messageCount >= messagesLimit){
             Dialog d = new MaterialDialog.Builder(this)
@@ -145,21 +157,31 @@ public class SendUserMessage extends AppCompatActivity implements View.OnClickLi
         }else{
             String messageStr = tv_message.getText().toString();
             if(!TextUtils.isEmpty(messageStr)) {
-                String key = mDatabase.child("messages").child(fUser.getUid()).child(extras.getString(USER_ID_KEY)).push().getKey();
-                UserMessage message = new UserMessage(messageStr, DateHelper.getCurrentDateInMil(), fUser.getUid(), key, true);
-                Map<String, Object> messageValues = message.toMap();
-                Map<String, Object> childUpdate = new HashMap<>();
-                childUpdate.put("/messages/" + fUser.getUid() + "/" + extras.getString(USER_ID_KEY) + "/" + key, messageValues);
-                mDatabase.updateChildren(childUpdate);
+                if(messageStr.length() > 150){
+                    tv_message.setError("Too much characters.");
+                }
+                else{
+                    tv_message.setText(null);
+                    String key = mDatabase.child("messages").child(fUser.getUid()).child(extras.getString(USER_ID_KEY)).push().getKey();
+                    UserMessage message = new UserMessage(messageStr, DateHelper.getCurrentDateInMil(), fUser.getUid(), key, true);
+                    Map<String, Object> messageValues = message.toMap();
+                    Map<String, Object> childUpdate = new HashMap<>();
+                    childUpdate.put("/messages/" + fUser.getUid() + "/" + extras.getString(USER_ID_KEY) + "/" + key, messageValues);
+                    mDatabase.updateChildren(childUpdate);
 
-                key = mDatabase.child("messages").child(extras.getString(USER_ID_KEY)).child(fUser.getUid()).push().getKey();
-                message = new UserMessage(messageStr, DateHelper.getCurrentDateInMil(), fUser.getUid(), key, false);
-                messageValues = message.toMap();
-                childUpdate = new HashMap<>();
-                childUpdate.put("/messages/" + extras.getString(USER_ID_KEY) + "/" + fUser.getUid() + "/" + key, messageValues);
-                mDatabase.updateChildren(childUpdate);
+                    key = mDatabase.child("messages").child(extras.getString(USER_ID_KEY)).child(fUser.getUid()).push().getKey();
+                    message = new UserMessage(messageStr, DateHelper.getCurrentDateInMil(), fUser.getUid(), key, false);
+                    messageValues = message.toMap();
+                    childUpdate = new HashMap<>();
+                    childUpdate.put("/messages/" + extras.getString(USER_ID_KEY) + "/" + fUser.getUid() + "/" + key, messageValues);
+                    mDatabase.updateChildren(childUpdate);
 
-                tv_message.setText(null);
+                    Notif notif = newNotif("message");
+                    notif.setContent("You have new message from " + fUser.getDisplayName() +  ".");
+                    notif.setKey(fUser.getUid());
+                    addNotification(notif);
+                }
+
             }else
                 tv_message.setError("Type message first.");
         }

@@ -27,6 +27,34 @@ public class Auction {
     public String directoryName;
     public boolean status;
     public long postDate;
+    private double latitude;
+    private double longitude;
+    private boolean hidden;
+
+    public boolean isHidden() {
+        return hidden;
+    }
+
+    public void setHidden(boolean hidden) {
+        this.hidden = hidden;
+    }
+
+    public double getLatitude() {
+        return latitude;
+    }
+
+    public void setLatitude(double latitude) {
+        this.latitude = latitude;
+    }
+
+    public double getLongitude() {
+        return longitude;
+    }
+
+    public void setLongitude(double longitude) {
+        this.longitude = longitude;
+    }
+
 
     public String getAuctionId() {
         return auctionId;
@@ -47,9 +75,9 @@ public class Auction {
         this.status = status;
     }
 
-    public Auction(String uid, String auctionId, String itemTitle, int staringBid, int currentBid, String category,
-                   String description, String image1Uri, String image2Uri, String image3Uri, String image4Uri,
-                   String image1Name, String image2Name, String image3Name, String image4Name, String directoryName, boolean status, long postDate) {
+    public Auction(String uid, String auctionId, String itemTitle, int staringBid, int currentBid, String category, String description,
+                   String image1Uri, String image2Uri, String image3Uri, String image4Uri, String image1Name, String image2Name,
+                   String image3Name, String image4Name, String directoryName, boolean status, long postDate, double latitude, double longitude, boolean hidden) {
         this.uid = uid;
         this.auctionId = auctionId;
         this.itemTitle = itemTitle;
@@ -68,6 +96,9 @@ public class Auction {
         this.directoryName = directoryName;
         this.status = status;
         this.postDate = postDate;
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.hidden = hidden;
     }
 
     @Exclude
@@ -92,6 +123,9 @@ public class Auction {
         result.put("directoryName", directoryName);
         result.put("status", status);
         result.put("postDate", postDate);
+        result.put("latitude", latitude);
+        result.put("longitude", longitude);
+        result.put("hidden", hidden);
 
         return result;
     }

@@ -6,7 +6,6 @@ import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.helper.ItemTouchHelper;
 import android.util.Log;
@@ -34,7 +33,9 @@ import com.pnikosis.materialishprogress.ProgressWheel;
 import com.tradesomev4.tradesomev4.Filters.MessageFilter;
 import com.tradesomev4.tradesomev4.R;
 import com.tradesomev4.tradesomev4.SendUserMessage;
+import com.tradesomev4.tradesomev4.m_Helpers.CalendarUtils;
 import com.tradesomev4.tradesomev4.m_Helpers.Connectivity;
+import com.tradesomev4.tradesomev4.m_Helpers.Keys;
 import com.tradesomev4.tradesomev4.m_Helpers.SnackBars;
 import com.tradesomev4.tradesomev4.m_Model.MessageRoot;
 import com.tradesomev4.tradesomev4.m_Model.User;
@@ -96,8 +97,6 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         timeOuttimer.start();
     }
 
-
-
     public void timer(){
         final CountDownTimer c = new CountDownTimer(1000, 1000) {
 
@@ -142,7 +141,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                             hideAll();
                         }else{
                             if(!isSearching &&  messageRoots.size() == 0){
-                                tv_items_here.setText("Followers appear here.");
+                                tv_items_here.setText("Messages appear here.");
                                 showItemsHere();
                             }
                         }
@@ -150,7 +149,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
 
                     if(messageRoots.size() == 0 && puta == 2){
                         Log.d(DEBUG_TAG, "PUTA 2: TRUE");
-                        tv_items_here.setText("Followers appear here.");
+                        tv_items_here.setText("Messages appear here.");
                         hideAll();
                         showLoading();
                         puta--;
@@ -214,6 +213,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
     }
 
     public void addMessage(int pos, String message){
+        Log.d(Keys.DEBUG_TAG, "MESSAGE BLACXA: " + message);
         if(!fUser.getUid().equals(message)){
             MessageRoot root = new MessageRoot();
             root.setUserId(message);
@@ -244,7 +244,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         initSwipe();
         parentView = view;
 
-        Query messagesRef = mDatabase.child("messages").child(fUser.getUid());
+        Query messagesRef = mDatabase.child("messages").child(fUser.getUid()).limitToLast(50);
         messagesRef.addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -304,12 +304,28 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 message = dataSnapshot.getValue(UserMessage.class);
-                if(!message.isRead()) {
+
+                String date = CalendarUtils.ConvertMilliSecondsToFormattedDate(message.getSendDate());
+                holder.date.setText(date);
+
+                if(message.getSenderId().equals(fUser.getUid()))
+                    holder.senderMessage.setText("You: " + message.getMessage());
+                else
                     holder.senderMessage.setText(message.getMessage());
+
+
+                if(!message.isRead()){
+                    if(position != 0 ){
+                        MessageRoot messageRoot = messageRoots.get(position);
+                        messageRoots.remove(position);
+                        notifyItemRemoved(position);
+                        messageRoots.add(0, messageRoot);
+                        notifyItemInserted(0);
+                    }
+
                     holder.senderMessage.setTypeface(null, Typeface.BOLD);
                     holder.senderName.setTypeface(null, Typeface.BOLD);
                 }else{
-                    holder.senderMessage.setText(message.getMessage());
                     holder.senderMessage.setTypeface(null, Typeface.NORMAL);
                 }
             }
@@ -373,8 +389,8 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                     @Override
                     public boolean onLongClick(View v) {
                         new MaterialDialog.Builder(context)
-                                .title("Delete Message")
-                                .content("Are your sure your want to delete this messages?")
+                                .title("Delete?")
+                                .content("Conversation will be deleted, do you wish to continue?")
                                 .positiveText("Yes")
                                 .negativeText("No")
                                 .onAny(new MaterialDialog.SingleButtonCallback() {
@@ -383,7 +399,7 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
 
                                         if(which.toString().equals("POSITIVE")){
                                             mDatabase.child("messages").child(fUser.getUid()).child(messageRoots.get(position).getUserId()).removeValue();
-                                            mDatabase.child("users").child(messageRoots.get(position).getUserId()).removeEventListener(users);
+                                            //mDatabase.child("users").child(messageRoots.get(position).getUserId()).removeEventListener(users);
                                             Log.d("alfred", messageRoots.get(position).getUserId());
                                             messageRoots.remove(position);
                                             notifyItemRemoved(position);
@@ -427,10 +443,12 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
         TextView senderName;
         TextView senderMessage;
         View container;
+        TextView date;
 
         public MessagesHolder(View itemView) {
             super(itemView);
 
+            date = (TextView)itemView.findViewById(R.id.date);
             senderImage = (ImageView) itemView.findViewById(R.id.iv_sender_image);
             senderName = (TextView) itemView.findViewById(R.id.tv_sender_name);
             senderMessage = (TextView) itemView.findViewById(R.id.tv_sender_message);
@@ -450,31 +468,35 @@ public class MessagesAdapter extends RecyclerView.Adapter<MessagesAdapter.Messag
                 final int pos = viewHolder.getAdapterPosition();
                 parentView.setTag(pos);
                 final MessageRoot messageRoot= messageRoots.get(pos);
-                messageRoots.remove(pos);
-                notifyItemRemoved(pos);
                 //Snackbar.make(view, R.string.notice_removed, Snackbar.LENGTH_SHORT).show();
-                Snackbar.make(parentView, "Message will be deleted.", Snackbar.LENGTH_LONG)
-                        .setCallback(new Snackbar.Callback() {
+                new MaterialDialog.Builder(context)
+                        .title("Delete?")
+                        .content("Conversation will be deleted, do you wish to continue?")
+                        .positiveText("Yes")
+                        .negativeText("No")
+                        .cancelable(false)
+                        .canceledOnTouchOutside(false)
+                        .onAny(new MaterialDialog.SingleButtonCallback() {
                             @Override
-                            public void onDismissed(Snackbar snackbar, int event) {
-                                Log.d(DEBUG_TAG, "ONDISMESSED: TRUE" + messageRoot.getUserId());
-                                if(isConnected){
-                                    //mDatabase.child("bidHistory").child(fUser.getUid()).child(bid.getId()).setValue(null);
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+
+                                if(which.toString().equals("POSITIVE")){
+                                    mDatabase.child("messages").child(fUser.getUid()).child(messageRoots.get(pos).getUserId()).removeValue();
+                                    //mDatabase.child("users").child(messageRoots.get(pos).getUserId()).removeEventListener(users);
+                                    Log.d(Keys.DEBUG_TAG, messageRoots.get(pos).getUserId());
+                                    messageRoots.remove(pos);
+                                    notifyItemRemoved(pos);
                                 }else{
+                                    messageRoots.remove(pos);
+                                    notifyItemRemoved(pos);
                                     messageRoots.add(pos, messageRoot);
                                     notifyItemInserted(pos);
-                                    snackBars.showCheckYourConnection();
                                 }
                             }
                         })
-                        .setAction("UNDO", new View.OnClickListener() {
-                            @Override
-                            public void onClick(View v) {
-                                messageRoots.add(pos, messageRoot);
-                                notifyItemInserted(pos);
-                            }
-                        })
                         .show();
+
+
             }
         };
 

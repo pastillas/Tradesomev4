@@ -133,8 +133,6 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         myBidsAuctions = (ImageView) view.findViewById(R.id.iv_my_bid_auction);
         pin = (ImageView)view.findViewById(R.id.iv_pin);
         email = (TextView) view.findViewById(R.id.tv_email);
-        bDate = (TextView) view.findViewById(R.id.tv_birth_date);
-        gender = (TextView) view.findViewById(R.id.tv_gender);
         ratingBar = (RatingBar) view.findViewById(R.id.rb_rating_bar);
 
         setData();

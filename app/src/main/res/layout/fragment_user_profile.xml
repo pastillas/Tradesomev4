@@ -18,13 +18,13 @@
             android:layout_height="match_parent"
             android:gravity="center_vertical|center_horizontal"
             android:orientation="vertical"
-            android:paddingTop="10dp">
+            android:paddingTop="50dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:gravity="center_horizontal">
+                android:gravity="center_horizontal"
+                android:orientation="horizontal">
 
                 <Button
                     android:id="@+id/btn_follow"
@@ -36,282 +36,227 @@
                     android:theme="@style/followButton" />
 
                 <Button
+                    android:id="@+id/btn_complain"
                     android:layout_width="120dp"
                     android:layout_height="40dp"
+                    android:layout_gravity="center_horizontal"
                     android:text="Report User"
                     android:textSize="12dp"
-                    android:layout_gravity="center_horizontal"
-                    android:theme="@style/followButton"
-                    android:id="@+id/btn_complain" />
+                    android:theme="@style/followButton" />
 
 
             </LinearLayout>
-
-
-            <ImageView
-                android:layout_marginTop="16dp"
-                android:id="@+id/iv_prof_pic"
-                android:layout_width="90dp"
-                android:layout_height="90dp"
-                android:backgroundTint="@color/gray"
-                android:src="@drawable/ic_account_circle_black_24dp" />
-
-            <TextView
-                android:id="@+id/tv_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Josh Bak lusi"
-                android:textColor="@color/black"
-                android:textSize="16dp" />
-
-            <RatingBar
-                android:id="@+id/rb_rating_bar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:numStars="5"
-                android:rating="0"
-                android:stepSize="0.1"
-                android:theme="@style/RatingBar"
-                android:isIndicator="true"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:gravity="center_vertical|center_horizontal"
-                android:orientation="horizontal">
+                android:orientation="vertical"
+                android:gravity="center_horizontal"
+                android:layout_gravity="center_vertical">
 
-                <LinearLayout
+                <android.support.v7.widget.CardView
+                    android:layout_width="90dp"
+                    android:layout_height="90dp"
+                    android:layout_marginTop="50dp"
+                    android:elevation="0dp"
+                    app:cardCornerRadius="45dp">
+
+                    <ImageView
+                        android:id="@+id/iv_prof_pic"
+                        android:layout_width="90dp"
+                        android:layout_height="90dp"
+                        android:backgroundTint="@color/gray"
+                        android:src="@drawable/ic_account_circle_black_24dp" />
+
+                </android.support.v7.widget.CardView>
+
+                <TextView
+                    android:id="@+id/tv_name"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginLeft="10dp"
-                    android:layout_marginRight="20dp"
+                    android:text="Name"
+                    android:textColor="@color/black"
+                    android:textSize="16dp" />
+
+
+                <TextView
+                    android:id="@+id/tv_email"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical|center_horizontal"
+                    android:text="Email"
+                    android:theme="@style/userInfo" />
+
+                <RatingBar
+                    android:id="@+id/rb_rating_bar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:isIndicator="true"
+                    android:numStars="5"
+                    android:rating="0"
+                    android:stepSize="0.1"
+                    android:theme="@style/RatingBar"
+                    android:layout_marginTop="50dp"/>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
                     android:gravity="center_vertical|center_horizontal"
-                    android:orientation="vertical">
+                    android:orientation="horizontal">
 
-                    <TextView
-                        android:id="@+id/tv_bids"
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="0"
-                        android:theme="@style/TradesomeTextTitle" />
+                        android:layout_marginLeft="10dp"
+                        android:layout_marginRight="20dp"
+                        android:gravity="center_vertical|center_horizontal"
+                        android:orientation="vertical">
 
-                    <TextView
+                        <TextView
+                            android:id="@+id/tv_bids"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:theme="@style/TradesomeTextTitle" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_horizontal"
+                            android:text="Bids"
+                            android:theme="@style/TradesomeTextSubTitle" />
+                    </LinearLayout>
+
+
+                    <LinearLayout
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:gravity="center_horizontal"
-                        android:text="Bids"
-                        android:theme="@style/TradesomeTextSubTitle" />
+                        android:layout_marginRight="20dp"
+                        android:gravity="center_vertical|center_horizontal"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tv_auctions"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:theme="@style/TradesomeTextTitle" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_horizontal"
+                            android:text="Auctions"
+                            android:theme="@style/TradesomeTextSubTitle" />
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginRight="10dp"
+                        android:gravity="center_vertical|center_horizontal"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tv_following"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:theme="@style/TradesomeTextTitle" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_horizontal"
+                            android:text="Following"
+                            android:theme="@style/TradesomeTextSubTitle" />
+                    </LinearLayout>
+
+
+                    <LinearLayout
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical|center_horizontal"
+                        android:orientation="vertical">
+
+                        <TextView
+                            android:id="@+id/tv_followers"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="0"
+                            android:theme="@style/TradesomeTextTitle" />
+
+                        <TextView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:gravity="center_horizontal"
+                            android:text="Followers"
+                            android:theme="@style/TradesomeTextSubTitle" />
+                    </LinearLayout>
+
+
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="240dp"
+                    android:layout_height="1dp"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="20dp"
+                    android:background="@color/gray"></LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:gravity="center_vertical|center_horizontal"
+                    android:orientation="horizontal">
+
+                    <ImageView
+                        android:id="@+id/iv_bid_auction"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_gravity="center_horizontal|center_vertical"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:padding="8dp"
+                        android:src="@drawable/auction"
+                        android:tint="@color/colorPrimary" />
+
+
+                    <ImageView
+                        android:id="@+id/iv_pin"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_gravity="center_horizontal|center_vertical"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:padding="8dp"
+                        android:src="@drawable/pin"
+                        android:tint="@color/colorPrimary" />
+
+                    <ImageView
+                        android:id="@+id/iv_send_message"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:layout_gravity="center_horizontal|center_vertical"
+                        android:background="?attr/selectableItemBackgroundBorderless"
+                        android:clickable="true"
+                        android:padding="8dp"
+                        android:src="@drawable/ic_send_white_36dp"
+                        android:tint="@color/colorPrimary" />
+
+
                 </LinearLayout>
 
 
                 <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginRight="20dp"
-                    android:gravity="center_vertical|center_horizontal"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/tv_auctions"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:theme="@style/TradesomeTextTitle" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_horizontal"
-                        android:text="Auctions"
-                        android:theme="@style/TradesomeTextSubTitle" />
-                </LinearLayout>
-
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginRight="10dp"
-                    android:gravity="center_vertical|center_horizontal"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/tv_following"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:theme="@style/TradesomeTextTitle" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_horizontal"
-                        android:text="Following"
-                        android:theme="@style/TradesomeTextSubTitle" />
-                </LinearLayout>
-
-
-                <LinearLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:gravity="center_vertical|center_horizontal"
-                    android:orientation="vertical">
-
-                    <TextView
-                        android:id="@+id/tv_followers"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:theme="@style/TradesomeTextTitle" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:gravity="center_horizontal"
-                        android:text="Followers"
-                        android:theme="@style/TradesomeTextSubTitle" />
-                </LinearLayout>
-
+                    android:layout_width="240dp"
+                    android:layout_height="1dp"
+                    android:layout_gravity="center_horizontal"
+                    android:background="@color/gray"></LinearLayout>
             </LinearLayout>
         </LinearLayout>
 
-        <LinearLayout
-            android:layout_width="240dp"
-            android:layout_height="1dp"
-            android:layout_gravity="center_horizontal"
-            android:layout_marginTop="20dp"
-            android:background="@color/gray"></LinearLayout>
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical|center_horizontal"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:id="@+id/iv_bid_auction"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="center_horizontal|center_vertical"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:padding="8dp"
-                android:src="@drawable/auction"
-                android:tint="@color/colorPrimary" />
-
-
-            <ImageView
-                android:id="@+id/iv_pin"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="center_horizontal|center_vertical"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:padding="8dp"
-                android:src="@drawable/pin"
-                android:tint="@color/colorPrimary" />
-
-            <ImageView
-                android:id="@+id/iv_rate"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="center_horizontal|center_vertical"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:padding="8dp"
-                android:src="@drawable/star"
-                android:tint="@color/colorPrimary" />
-
-            <ImageView
-                android:id="@+id/iv_send_message"
-                android:layout_width="40dp"
-                android:layout_height="40dp"
-                android:layout_gravity="center_horizontal|center_vertical"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:clickable="true"
-                android:padding="8dp"
-                android:src="@drawable/ic_send_white_36dp"
-                android:tint="@color/colorPrimary" />
-
-
-        </LinearLayout>
-
-
-        <LinearLayout
-            android:layout_width="240dp"
-            android:layout_height="1dp"
-            android:layout_gravity="center_horizontal"
-            android:background="@color/gray"></LinearLayout>
-
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="102dp"
-            android:layout_marginTop="20dp"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:id="@+id/imageView3"
-                android:layout_width="26dp"
-                android:layout_height="26dp"
-                android:src="@drawable/emailicon" />
-
-            <TextView
-                android:id="@+id/tv_email"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:text="josh@gmail.com"
-                android:theme="@style/userInfo" />
-
-        </LinearLayout>
-
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="100dp"
-            android:layout_marginTop="15dp"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:id="@+id/imageView4"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:src="@drawable/giftcard"
-                android:tint="@color/giftColor" />
-
-            <TextView
-                android:id="@+id/tv_birth_date"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:text="May 17, 1995"
-                android:theme="@style/userInfo" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginLeft="100dp"
-            android:layout_marginTop="15dp"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:id="@+id/imageView5"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:src="@drawable/username" />
-
-            <TextView
-                android:id="@+id/tv_gender"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:layout_marginTop="3dp"
-                android:text="Male"
-                android:theme="@style/userInfo" />
-        </LinearLayout>
     </LinearLayout>
 </ScrollView>

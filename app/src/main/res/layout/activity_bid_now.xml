@@ -145,7 +145,7 @@
             android:id="@+id/tv_items_here"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="Items Appear Here."
+            android:text="User Bids Appear Here."
             android:textSize="24dp"
             android:gravity="center"/>
 

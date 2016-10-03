@@ -18,4 +18,8 @@
 
     <color name="lightGray">#F5F5F5</color>
     <color name="detailsBg">#e0eaf1</color>
+
+    <color name="orange">#FF9900</color>
+    <color name="green">#009900</color>
+    <color name="blue">#000099</color>
 </resources>

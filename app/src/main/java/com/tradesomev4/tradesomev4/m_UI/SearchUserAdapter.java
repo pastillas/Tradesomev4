@@ -233,8 +233,6 @@ public class SearchUserAdapter extends RecyclerView.Adapter<SearchUserAdapter.Se
                     addUser(user);
                     hideAll();
                 }
-
-
             }
 
             @Override
@@ -267,26 +265,24 @@ public class SearchUserAdapter extends RecyclerView.Adapter<SearchUserAdapter.Se
         View view = inflater.inflate(R.layout.search_user_model, parent, false);
         SearchUserHolder holder = new SearchUserHolder(view);
 
+        /*
         if(prevPos > position)
             AnimationUtil.animate(holder, true);
         else
             AnimationUtil.animate(holder, false);
-
+        */
         return holder;
     }
 
     @Override
     public void onBindViewHolder(SearchUserHolder holder, int position) {
+        AnimationUtil.setFadeAnimation(holder.itemView);
         glide.load(users.get(position).getImage())
                 .asBitmap().centerCrop()
                 .into(holder.userImage);
 
         holder.userName.setText(users.get(position).getName());
 
-        if(prevPos > position)
-            AnimationUtil.animate(holder, true);
-        else
-            AnimationUtil.animate(holder, false);
 
         final Bundle extras = new Bundle();
         extras.putString(USER_ID_KEY, users.get(position).getId());

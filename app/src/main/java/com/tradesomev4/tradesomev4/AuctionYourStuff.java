@@ -3,7 +3,6 @@ package com.tradesomev4.tradesomev4;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -13,10 +12,12 @@ import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -25,25 +26,30 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.afollestad.materialdialogs.util.DialogUtils;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
+import com.bumptech.glide.Glide;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
-import com.google.firebase.storage.UploadTask;
+import com.gun0912.tedpermission.PermissionListener;
+import com.gun0912.tedpermission.TedPermission;
 import com.iceteck.silicompressorr.SiliCompressor;
 import com.tradesomev4.tradesomev4.m_Helpers.Connectivity;
+import com.tradesomev4.tradesomev4.m_Helpers.Keys;
 import com.tradesomev4.tradesomev4.m_Helpers.SnackBars;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+
+import gun0912.tedbottompicker.TedBottomPicker;
 
 public class AuctionYourStuff extends AppCompatActivity implements
         View.OnClickListener,
-        AdapterView.OnItemSelectedListener{
+        AdapterView.OnItemSelectedListener {
     private static final String log = "Auction your stuff";
     private static final int CAPTURE_IMAGE_ACTIVITY_REQUEST_CODE = 100;
     private static final int MY_PERMISSIONS_REQUEST_WRITE_STORAGE = 101;
@@ -90,8 +96,9 @@ public class AuctionYourStuff extends AppCompatActivity implements
     View parentView;
     int puta;
     private static final String DEBUG_TAG = "DEBUG_TAG";
+    boolean anyChanges;
 
-    public void timer(){
+    public void timer() {
         final CountDownTimer c = new CountDownTimer(1000, 1000) {
 
             @Override
@@ -102,14 +109,14 @@ public class AuctionYourStuff extends AppCompatActivity implements
             public void onFinish() {
                 Connectivity connectivity = new Connectivity(getApplicationContext());
 
-                if(!connectivity.isConnected()) {
+                if (!connectivity.isConnected()) {
                     isConnectionRestoredShowed = false;
                     isConnected = false;
 
-                    if(puta == 1)
+                    if (puta == 1)
                         puta++;
 
-                    if(!isConnectionDisabledShowed){
+                    if (!isConnectionDisabledShowed) {
                         snackBars.showConnectionDisabledDialog();
                         isConnectionDisabledShowed = true;
                     }
@@ -117,7 +124,7 @@ public class AuctionYourStuff extends AppCompatActivity implements
                     isConnected = true;
                     isConnectionDisabledShowed = false;
 
-                    if(puta != 1 && !isConnectionRestoredShowed){
+                    if (puta != 1 && !isConnectionRestoredShowed) {
                         snackBars.showConnectionRestored();
                         isConnectionRestoredShowed = true;
                     }
@@ -135,6 +142,7 @@ public class AuctionYourStuff extends AppCompatActivity implements
         toolbar = (Toolbar) findViewById(R.id.app_bar_messaging);
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        anyChanges = false;
 
         puta = 1;
         parentView = findViewById(R.id.scrollView);
@@ -151,7 +159,7 @@ public class AuctionYourStuff extends AppCompatActivity implements
 
         itemImage1.setOnClickListener(this);
         itemImage2.setOnClickListener(this);
-        itemImage3 .setOnClickListener(this);
+        itemImage3.setOnClickListener(this);
         itemImage4.setOnClickListener(this);
         findViewById(R.id.selectCategory).setOnClickListener(this);
         findViewById(R.id.next).setOnClickListener(this);
@@ -168,12 +176,12 @@ public class AuctionYourStuff extends AppCompatActivity implements
         editMode();
     }
 
-    public void editMode(){
+    public void editMode() {
         Bundle extras = getIntent().getExtras();
 
 
-        if(extras != null){
-
+        if (extras != null) {
+            anyChanges = true;
             compressUri1 = Uri.parse(extras.getString("image1"));
             compressUri2 = Uri.parse(extras.getString("image2"));
             compressUri3 = Uri.parse(extras.getString("image3"));
@@ -269,10 +277,51 @@ public class AuctionYourStuff extends AppCompatActivity implements
     }
 
     private void dispatchLunchGallery() {
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent, "Select Image"), PICK_IMAGE_REQUEST);
+        PermissionListener permissionlistener = new PermissionListener() {
+            @Override
+            public void onPermissionGranted() {
+                TedBottomPicker tedBottomPicker = new TedBottomPicker.Builder(AuctionYourStuff.this)
+                        .setMaxCount(1000)
+                        .setOnImageSelectedListener(new TedBottomPicker.OnImageSelectedListener() {
+                            @Override
+                            public void onImageSelected(Uri uri) {
+                                // here is selected uri
+                                switch (choice) {
+                                    case 1:
+                                        capturedUri1 = uri;
+                                        new ImageCompressionAsyncTask(getApplicationContext()).execute(capturedUri1.toString());
+                                        break;
+                                    case 2:
+                                        capturedUri2 = uri;
+                                        new ImageCompressionAsyncTask(getApplicationContext()).execute(capturedUri2.toString());
+                                        break;
+                                    case 3:
+                                        capturedUri3 = uri;
+                                        new ImageCompressionAsyncTask(getApplicationContext()).execute(capturedUri3.toString());
+                                        break;
+                                    case 4:
+                                        capturedUri4 = uri;
+                                        new ImageCompressionAsyncTask(getApplicationContext()).execute(capturedUri4.toString());
+                                        break;
+                                }
+                            }
+                        })
+                        .create();
+
+                tedBottomPicker.show(getSupportFragmentManager());
+            }
+
+            @Override
+            public void onPermissionDenied(ArrayList<String> deniedPermissions) {
+                Toast.makeText(AuctionYourStuff.this, "Permission Denied\n" + deniedPermissions.toString(), Toast.LENGTH_SHORT).show();
+            }
+        };
+
+        new TedPermission(this)
+                .setPermissionListener(permissionlistener)
+                .setDeniedMessage("If you reject permission,you can not use this service\n\nPlease turn on permissions at [Setting] > [Permission]")
+                .setPermissions(android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_EXTERNAL_STORAGE)
+                .check();
     }
 
     private void dispatchTakePictureIntent() {
@@ -355,6 +404,7 @@ public class AuctionYourStuff extends AppCompatActivity implements
                 //itemImage1.setImageBitmap(bitmap);
                 switch (choice) {
                     case 1:
+                        Log.d(Keys.DEBUG_TAG, capturedUri1.toString());
                         new ImageCompressionAsyncTask(this).execute(capturedUri1.toString());
                         break;
 
@@ -374,10 +424,11 @@ public class AuctionYourStuff extends AppCompatActivity implements
                 e.printStackTrace();
             }
         } else {
-            if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            /*if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
                 switch (choice) {
                     case 1:
                         capturedUri1 = data.getData();
+                        Log.d(Keys.DEBUG_TAG, capturedUri1.toString());
                         new ImageCompressionAsyncTask(this).execute(capturedUri1.toString());
                         break;
                     case 2:
@@ -393,10 +444,9 @@ public class AuctionYourStuff extends AppCompatActivity implements
                         new ImageCompressionAsyncTask(this).execute(capturedUri4.toString());
                         break;
                 }
-            }
+            }*/
         }
     }
-
 
     class ImageCompressionAsyncTask extends AsyncTask<String, Void, String> {
         Context mContext;
@@ -430,60 +480,36 @@ public class AuctionYourStuff extends AppCompatActivity implements
                     compressUri4 = Uri.fromFile(imageFile);
                     break;
             }
+            switch (choice) {
+                case 1:
+                    Glide.with(AuctionYourStuff.this)
+                            .load(compressUri1)
+                            .asBitmap().centerCrop()
+                            .into(itemImage1);
+                    break;
 
-            try {
-                switch (choice) {
-                    case 1:
-                        Bitmap bitmap1 = MediaStore.Images.Media.getBitmap(getContentResolver(), compressUri1);
-                        itemImage1.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                        itemImage1.setImageBitmap(bitmap1);
-                        break;
+                case 2:
+                    Glide.with(AuctionYourStuff.this)
+                            .load(compressUri2)
+                            .asBitmap().centerCrop()
+                            .into(itemImage2);
+                    break;
 
-                    case 2:
-                        Bitmap bitmap2 = MediaStore.Images.Media.getBitmap(getContentResolver(), compressUri2);
-                        itemImage2.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                        itemImage2.setImageBitmap(bitmap2);
-                        break;
-
-                    case 3:
-                        //Toast.makeText(AuctionYourStuff.this, "Compress done", Toast.LENGTH_SHORT).show();
-                        Bitmap bitmap3 = MediaStore.Images.Media.getBitmap(getContentResolver(), compressUri3);
-                        itemImage3.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                        itemImage3.setImageBitmap(bitmap3);
-                        //uploadImage(compressUri3);
-                        break;
-                    case 4:
-                        //Toast.makeText(AuctionYourStuff.this, "Compress done", Toast.LENGTH_SHORT).show();
-                        Bitmap bitmap4 = MediaStore.Images.Media.getBitmap(getContentResolver(), compressUri4);
-                        itemImage4.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                        itemImage4.setImageBitmap(bitmap4);
-                        //uploadImage(compressUri4);
-                        break;
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
+                case 3:
+                    Glide.with(AuctionYourStuff.this)
+                            .load(compressUri3)
+                            .asBitmap().centerCrop()
+                            .into(itemImage3);
+                    break;
+                case 4:
+                    Glide.with(AuctionYourStuff.this)
+                            .load(compressUri4)
+                            .asBitmap().centerCrop()
+                            .into(itemImage4);
+                    break;
             }
+
         }
-    }
-
-
-    private void uploadImage(Uri compressUri) {
-        StorageReference tmpStorageRef = storageRef.child("images/" + compressUri.getLastPathSegment());
-        UploadTask uploadTask = tmpStorageRef.putFile(compressUri);
-
-        uploadTask.addOnFailureListener(new OnFailureListener() {
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Toast.makeText(AuctionYourStuff.this, "jhgjhg", Toast.LENGTH_SHORT).show();
-            }
-        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-            @Override
-            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                Uri downloadUrl = taskSnapshot.getDownloadUrl();
-                Toast.makeText(AuctionYourStuff.this, "Upload Done", Toast.LENGTH_SHORT).show();
-            }
-        });
     }
 
     @Override
@@ -500,19 +526,33 @@ public class AuctionYourStuff extends AppCompatActivity implements
         }
     }
 
+    private boolean getChanges() {
+        if (compressUri1 != null || compressUri2 != null || compressUri3 != null || compressUri4 != null) {
+            anyChanges = true;
+        }
+
+        itemTitleStr = itemTitle.getText().toString();
+        String tmp = startingBid.getText().toString();
+        descriptionStr = description.getText().toString();
+
+        if (!TextUtils.isEmpty(itemTitleStr) || !TextUtils.isEmpty(tmp) || !TextUtils.isEmpty(descriptionStr) || !TextUtils.isEmpty(categoryStr))
+            anyChanges = true;
+
+        return anyChanges;
+    }
+
     private void validate() {
         boolean valid = true;
+        boolean isEmpty = false;
 
-        if (compressUri1 == null || compressUri2 == null || compressUri3 == null || compressUri4 == null)
+        if (compressUri1 == null || compressUri2 == null || compressUri3 == null || compressUri4 == null) {
             valid = false;
+            isEmpty = true;
+        }
 
         itemTitleStr = itemTitle.getText().toString();
 
         String startingBidStrTemp = startingBid.getText().toString();
-
-        if (startingBidStrTemp.length() > 0) {
-            startingBidInt = Integer.parseInt(startingBidStrTemp);
-        }
 
         descriptionStr = description.getText().toString();
 
@@ -520,26 +560,46 @@ public class AuctionYourStuff extends AppCompatActivity implements
             itemTitle.setError("Required.");
             valid = false;
         } else {
-            itemTitle.setError(null);
+            if (itemTitleStr.length() > 100) {
+                itemTitle.setError("To much characters.");
+                valid = false;
+            } else {
+                itemTitleStr = itemTitleStr.trim();
+                itemTitle.setError(null);
+            }
         }
 
         if (TextUtils.isEmpty(startingBidStrTemp)) {
             startingBid.setError("Required.");
             valid = false;
         } else {
-            startingBid.setError(null);
+            if (startingBidStrTemp.length() > 9) {
+                startingBid.setError("To much value.");
+                valid = false;
+            } else {
+                startingBid.setError(null);
+                startingBidInt = Integer.parseInt(startingBidStrTemp);
+            }
         }
 
         if (TextUtils.isEmpty(descriptionStr)) {
             description.setError("Required.");
             valid = false;
         } else {
-            description.setError(null);
+            if (descriptionStr.length() > 150) {
+                description.setError("To much characters.");
+                valid = false;
+            } else {
+                description.setError(null);
+                descriptionStr = descriptionStr.trim();
+            }
         }
 
 
-        if (TextUtils.isEmpty(categoryStr))
+        if (TextUtils.isEmpty(categoryStr)) {
+            isEmpty = true;
             valid = false;
+        }
 
         if (valid) {
             onSave = true;
@@ -549,13 +609,15 @@ public class AuctionYourStuff extends AppCompatActivity implements
             intent.putExtra("image3", compressUri3.toString());
             intent.putExtra("image4", compressUri4.toString());
             intent.putExtra("itemTitleStr", itemTitleStr);
-            intent.putExtra("startingBidInt", startingBidInt+"");
+            intent.putExtra("startingBidInt", startingBidInt + "");
             intent.putExtra("descriptionStr", descriptionStr);
             intent.putExtra("categoryStr", categoryStr);
             startActivity(intent);
         } else {
-            showBasic();
+            if (isEmpty)
+                showBasic();
         }
+
     }
 
     @Override
@@ -593,6 +655,49 @@ public class AuctionYourStuff extends AppCompatActivity implements
         }
     }
 
+    @Override
+    public boolean onNavigateUp() {
+
+        NavUtils.navigateUpFromSameTask(AuctionYourStuff.this);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            Log.d(Keys.DEBUG_TAG, String.valueOf(AuctionYourStuff.this));
+
+            if (getChanges()) {
+                new MaterialDialog.Builder(AuctionYourStuff.this)
+                        .title("Delete?")
+                        .content("The data will not be saved. Do you wish to continue?")
+                        .positiveText("YES")
+                        .negativeText("NO")
+                        .autoDismiss(false)
+                        .cancelable(false)
+                        .canceledOnTouchOutside(false)
+                        .onAny(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                Log.d(Keys.DEBUG_TAG, which.toString());
+                                dialog.dismiss();
+                                if (which.toString().equals("POSITIVE")) {
+                                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                    startActivity(intent);
+                                }
+
+                            }
+                        }).show();
+            }else{
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(intent);
+            }
+
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {

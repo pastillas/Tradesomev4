@@ -4,7 +4,6 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -13,9 +12,12 @@ import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
+import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
@@ -29,8 +31,10 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.afollestad.materialdialogs.util.DialogUtils;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -41,14 +45,20 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.gun0912.tedpermission.PermissionListener;
+import com.gun0912.tedpermission.TedPermission;
 import com.iceteck.silicompressorr.SiliCompressor;
 import com.tradesomev4.tradesomev4.m_Helpers.DateHelper;
+import com.tradesomev4.tradesomev4.m_Helpers.Keys;
 import com.tradesomev4.tradesomev4.m_Model.Auction;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+
+import gun0912.tedbottompicker.TedBottomPicker;
 
 public class EditPost extends AppCompatActivity implements
         View.OnClickListener,
@@ -99,11 +109,19 @@ public class EditPost extends AppCompatActivity implements
     private Auction auction;
     private FirebaseUser fUser;
     RequestManager requestManager;
+    Toolbar toolbar;
+    boolean anyChanges;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_edit_post);
+
+        toolbar = (Toolbar) findViewById(R.id.app_bar_messaging);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+        anyChanges = false;
+
         requestManager = Glide.with(this);
 
         extras = getIntent().getBundleExtra(BUNDLE_KEY);
@@ -143,25 +161,33 @@ public class EditPost extends AppCompatActivity implements
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     auction = dataSnapshot.getValue(Auction.class);
 
-                    requestManager.load(auction.getImage1Uri())
-                            .asBitmap().centerCrop()
-                            .into(itemImage1);
+                    if (compressUri1 != null) {
+                        requestManager.load(auction.getImage1Uri())
+                                .asBitmap().centerCrop()
+                                .into(itemImage1);
+                    }
 
-                    requestManager.load(auction.getImage2Uri())
-                            .asBitmap().centerCrop()
-                            .into(itemImage2);
+                    if (compressUri2 != null) {
+                        requestManager.load(auction.getImage2Uri())
+                                .asBitmap().centerCrop()
+                                .into(itemImage2);
+                    }
 
-                    requestManager.load(auction.getImage3Uri())
-                            .asBitmap().centerCrop()
-                            .into(itemImage3);
+                    if (compressUri3 != null) {
+                        requestManager.load(auction.getImage3Uri())
+                                .asBitmap().centerCrop()
+                                .into(itemImage3);
+                    }
 
-                    requestManager.load(auction.getImage4Uri())
-                            .asBitmap().centerCrop()
-                            .into(itemImage4);
+                    if (compressUri4 != null) {
+                        requestManager.load(auction.getImage4Uri())
+                                .asBitmap().centerCrop()
+                                .into(itemImage4);
+                    }
 
                     itemTitleStr = auction.getItemTitle();
                     itemTitle.setText(auction.getItemTitle());
-                    itemTitle.setEnabled(false);
+                    //itemTitle.setEnabled(false);
 
                     startingBid.setText(String.valueOf(auction.getStaringBid()));
                     description.setText(auction.getDescription());
@@ -261,10 +287,51 @@ public class EditPost extends AppCompatActivity implements
     }
 
     private void dispatchLunchGallery() {
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent, "Select Image"), PICK_IMAGE_REQUEST);
+        PermissionListener permissionlistener = new PermissionListener() {
+            @Override
+            public void onPermissionGranted() {
+                TedBottomPicker tedBottomPicker = new TedBottomPicker.Builder(EditPost.this)
+                        .setMaxCount(1000)
+                        .setOnImageSelectedListener(new TedBottomPicker.OnImageSelectedListener() {
+                            @Override
+                            public void onImageSelected(Uri uri) {
+                                // here is selected uri
+                                switch (choice) {
+                                    case 1:
+                                        capturedUri1 = uri;
+                                        new ImageCompressionAsyncTask(getApplicationContext()).execute(capturedUri1.toString());
+                                        break;
+                                    case 2:
+                                        capturedUri2 = uri;
+                                        new ImageCompressionAsyncTask(getApplicationContext()).execute(capturedUri2.toString());
+                                        break;
+                                    case 3:
+                                        capturedUri3 = uri;
+                                        new ImageCompressionAsyncTask(getApplicationContext()).execute(capturedUri3.toString());
+                                        break;
+                                    case 4:
+                                        capturedUri4 = uri;
+                                        new ImageCompressionAsyncTask(getApplicationContext()).execute(capturedUri4.toString());
+                                        break;
+                                }
+                            }
+                        })
+                        .create();
+
+                tedBottomPicker.show(getSupportFragmentManager());
+            }
+
+            @Override
+            public void onPermissionDenied(ArrayList<String> deniedPermissions) {
+                Toast.makeText(EditPost.this, "Permission Denied\n" + deniedPermissions.toString(), Toast.LENGTH_SHORT).show();
+            }
+        };
+
+        new TedPermission(this)
+                .setPermissionListener(permissionlistener)
+                .setDeniedMessage("If you reject permission,you can not use this service\n\nPlease turn on permissions at [Setting] > [Permission]")
+                .setPermissions(android.Manifest.permission.WRITE_EXTERNAL_STORAGE, android.Manifest.permission.READ_EXTERNAL_STORAGE)
+                .check();
     }
 
     private void dispatchTakePictureIntent() {
@@ -354,7 +421,7 @@ public class EditPost extends AppCompatActivity implements
                 e.printStackTrace();
             }
         } else {
-            if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
+            /*if (requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK && data != null && data.getData() != null) {
                 switch (choice) {
                     case 1:
                         capturedUri1 = data.getData();
@@ -373,7 +440,7 @@ public class EditPost extends AppCompatActivity implements
                         new ImageCompressionAsyncTask(this).execute(capturedUri4.toString());
                         break;
                 }
-            }
+            }*/
         }
     }
 
@@ -410,43 +477,33 @@ public class EditPost extends AppCompatActivity implements
                     compressUri4 = Uri.fromFile(imageFile);
                     break;
             }
+            switch (choice) {
+                case 1:
+                    Glide.with(EditPost.this)
+                            .load(compressUri1)
+                            .asBitmap().centerCrop()
+                            .into(itemImage1);
+                    break;
 
-            try {
-                switch (choice) {
-                    case 1:
-                        //Toast.makeText(AuctionYourStuff.this, "Compress done", Toast.LENGTH_SHORT).show();
-                        Bitmap bitmap1 = MediaStore.Images.Media.getBitmap(getContentResolver(), compressUri1);
-                        itemImage1.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                        itemImage1.setImageBitmap(bitmap1);
-                        //uploadImage(compressUri1);
-                        break;
+                case 2:
+                    Glide.with(EditPost.this)
+                            .load(compressUri2)
+                            .asBitmap().centerCrop()
+                            .into(itemImage2);
+                    break;
 
-                    case 2:
-                        //Toast.makeText(AuctionYourStuff.this, "Compress done", Toast.LENGTH_SHORT).show();
-                        Bitmap bitmap2 = MediaStore.Images.Media.getBitmap(getContentResolver(), compressUri2);
-                        itemImage2.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                        itemImage2.setImageBitmap(bitmap2);
-                        //uploadImage(compressUri2);
-                        break;
-
-                    case 3:
-                        //Toast.makeText(AuctionYourStuff.this, "Compress done", Toast.LENGTH_SHORT).show();
-                        Bitmap bitmap3 = MediaStore.Images.Media.getBitmap(getContentResolver(), compressUri3);
-                        itemImage3.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                        itemImage3.setImageBitmap(bitmap3);
-                        //uploadImage(compressUri3);
-                        break;
-                    case 4:
-                        //Toast.makeText(AuctionYourStuff.this, "Compress done", Toast.LENGTH_SHORT).show();
-                        Bitmap bitmap4 = MediaStore.Images.Media.getBitmap(getContentResolver(), compressUri4);
-                        itemImage4.setScaleType(ImageView.ScaleType.CENTER_CROP);
-                        itemImage4.setImageBitmap(bitmap4);
-                        //uploadImage(compressUri4);
-                        break;
-                }
-
-            } catch (IOException e) {
-                e.printStackTrace();
+                case 3:
+                    Glide.with(EditPost.this)
+                            .load(compressUri3)
+                            .asBitmap().centerCrop()
+                            .into(itemImage3);
+                    break;
+                case 4:
+                    Glide.with(EditPost.this)
+                            .load(compressUri4)
+                            .asBitmap().centerCrop()
+                            .into(itemImage4);
+                    break;
             }
         }
     }
@@ -467,6 +524,7 @@ public class EditPost extends AppCompatActivity implements
 
     private void validate() {
         boolean valid = true;
+        boolean isEmpty = false;
 
         //if (compressUri1 == null || compressUri2 == null || compressUri3 == null || compressUri4 == null)
         //valid = false;
@@ -475,156 +533,318 @@ public class EditPost extends AppCompatActivity implements
 
         String startingBidStrTemp = startingBid.getText().toString();
 
-        if (startingBidStrTemp.length() > 0) {
-            Log.d("puta", "puta");
-            startingBidInt = Integer.parseInt(startingBidStrTemp);
-        }
-
         descriptionStr = description.getText().toString();
 
         if (TextUtils.isEmpty(itemTitleStr)) {
             itemTitle.setError("Required.");
             valid = false;
         } else {
-            itemTitle.setError(null);
+            if (itemTitleStr.length() > 100) {
+                itemTitle.setError("To much characters.");
+                valid = false;
+            } else {
+                itemTitleStr = itemTitleStr.trim();
+                itemTitle.setError(null);
+            }
         }
 
         if (TextUtils.isEmpty(startingBidStrTemp)) {
             startingBid.setError("Required.");
             valid = false;
         } else {
-            startingBid.setError(null);
+            if (startingBidStrTemp.length() > 9) {
+                startingBid.setError("To much value.");
+                valid = false;
+            } else {
+                startingBid.setError(null);
+                startingBidInt = Integer.parseInt(startingBidStrTemp);
+            }
         }
 
         if (TextUtils.isEmpty(descriptionStr)) {
             description.setError("Required.");
             valid = false;
         } else {
-            description.setError(null);
+            if (descriptionStr.length() > 150) {
+                description.setError("To much characters.");
+                valid = false;
+            } else {
+                description.setError(null);
+                descriptionStr = descriptionStr.trim();
+            }
+        }
+
+
+        if (TextUtils.isEmpty(categoryStr)) {
+            isEmpty = true;
+            valid = false;
         }
 
         if (valid) {
             onSave = true;
             save();
         } else {
-            showBasic();
+            if (isEmpty)
+                showBasic();
         }
     }
+
+
+    private boolean getChanges() {
+        if (compressUri1 != null || compressUri2 != null || compressUri3 != null || compressUri4 != null) {
+            anyChanges = true;
+        }
+
+        itemTitleStr = itemTitle.getText().toString();
+        String tmp = startingBid.getText().toString();
+        descriptionStr = description.getText().toString();
+
+        if (!TextUtils.isEmpty(itemTitleStr) || !TextUtils.isEmpty(tmp) || !TextUtils.isEmpty(descriptionStr) || !TextUtils.isEmpty(categoryStr))
+            anyChanges = true;
+
+        return anyChanges;
+    }
+
+    @Override
+    public boolean onNavigateUp() {
+
+        NavUtils.navigateUpFromSameTask(EditPost.this);
+
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            Log.d(Keys.DEBUG_TAG, String.valueOf(EditPost.this));
+
+            if (getChanges()) {
+                new MaterialDialog.Builder(EditPost.this)
+                        .title("Delete?")
+                        .content("The data will not be saved. Do you wish to continue?")
+                        .positiveText("YES")
+                        .negativeText("NO")
+                        .autoDismiss(false)
+                        .cancelable(false)
+                        .canceledOnTouchOutside(false)
+                        .onAny(new MaterialDialog.SingleButtonCallback() {
+                            @Override
+                            public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                Log.d(Keys.DEBUG_TAG, which.toString());
+                                dialog.dismiss();
+                                if (which.toString().equals("POSITIVE")) {
+                                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                    startActivity(intent);
+                                }
+
+                            }
+                        }).show();
+            } else {
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(intent);
+            }
+
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
+
 
     private boolean image1Done = false;
     private boolean image2Done = false;
     private boolean image3Done = false;
     private boolean image4Done = false;
 
-    public void uploadImage() {
 
+    public void showUploadFailed() {
+        dialog2 = new MaterialDialog.Builder(EditPost.this)
+                .title("Upload failed")
+                .content("Please check your connection and try again later.")
+                .positiveText("OK")
+                .show();
+    }
+
+    public void uploadImage() {
 
         final String uid = fUser.getUid();
         final String directoryName = DateHelper.getCurrentDateInMil();
         final StorageReference uploadImageReference = storageRef.child(uid + "/").child(directoryName + "/");
 
-        mDatabase.child("auction").child(auction.getAuctionId()).child("category").setValue(categoryStr);
-        mDatabase.child("auction").child(auction.getAuctionId()).child("description").setValue(descriptionStr);
-        mDatabase.child("auction").child(auction.getAuctionId()).child("directoryName").setValue(directoryName);
-        mDatabase.child("auction").child(auction.getAuctionId()).child("staringBid").setValue(startingBidInt);
+        mDatabase.child("auction").child(auction.getAuctionId()).child("itemTitle").setValue(itemTitleStr).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                mDatabase.child("auction").child(auction.getAuctionId()).child("category").setValue(categoryStr).addOnCompleteListener(new OnCompleteListener<Void>() {
+                    @Override
+                    public void onComplete(@NonNull Task<Void> task) {
+                        mDatabase.child("auction").child(auction.getAuctionId()).child("description").setValue(descriptionStr).addOnCompleteListener(new OnCompleteListener<Void>() {
+                            @Override
+                            public void onComplete(@NonNull Task<Void> task) {
+                                mDatabase.child("auction").child(auction.getAuctionId()).child("directoryName").setValue(directoryName).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                    @Override
+                                    public void onComplete(@NonNull Task<Void> task) {
+                                        mDatabase.child("auction").child(auction.getAuctionId()).child("startingBid").setValue(startingBidInt).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                            @Override
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                if (image1Done && image2Done && image3Done && image4Done) {
 
+                                                    dialog2.dismiss();
+                                                    Toast.makeText(getApplicationContext(), "Success!", Toast.LENGTH_SHORT).show();
+                                                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                                    startActivity(intent);
+                                                } else {
+                                                    if (compressUri1 != null) {
+                                                        final StorageReference image1Ref = uploadImageReference.child("image1/" + compressUri1.getLastPathSegment());
+                                                        UploadTask uploadImage1 = image1Ref.putFile(compressUri1);
+                                                        uploadImage1.addOnFailureListener(new OnFailureListener() {
+                                                            @Override
+                                                            public void onFailure(@NonNull Exception e) {
+                                                                dialog2.dismiss();
+                                                                showUploadFailed();
+                                                            }
+                                                        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                                            @Override
+                                                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                                                Uri image1Uri = taskSnapshot.getDownloadUrl();
+                                                                String image1Name = image1Ref.getName();
+                                                                mDatabase.child("auction").child(auction.getAuctionId()).child("image1Name").setValue(image1Name);
+                                                                mDatabase.child("auction").child(auction.getAuctionId()).child("image1Uri").setValue(image1Uri.toString());
+                                                                image1Done = true;
+                                                                if (image1Done && image2Done && image3Done && image4Done) {
 
-        if (compressUri1 != null) {
-            final StorageReference image1Ref = uploadImageReference.child("image1/" + compressUri1.getLastPathSegment());
-            UploadTask uploadImage1 = image1Ref.putFile(compressUri1);
-            uploadImage1.addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
+                                                                    dialog2.dismiss();
+                                                                    Toast.makeText(getApplicationContext(), "Success!", Toast.LENGTH_SHORT).show();
+                                                                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                                                    startActivity(intent);
+                                                                }
+                                                            }
+                                                        });
+                                                    }
+                                                    if (compressUri2 != null) {
+                                                        final StorageReference image2Ref = uploadImageReference.child("image2" + compressUri2.getLastPathSegment());
+                                                        UploadTask uploadImage2 = image2Ref.putFile(compressUri2);
+                                                        uploadImage2.addOnFailureListener(new OnFailureListener() {
+                                                            @Override
+                                                            public void onFailure(@NonNull Exception e) {
 
-                }
-            }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    Uri image1Uri = taskSnapshot.getDownloadUrl();
-                    String image1Name = image1Ref.getName();
-                    mDatabase.child("auction").child(auction.getAuctionId()).child("image1Name").setValue(image1Name);
-                    mDatabase.child("auction").child(auction.getAuctionId()).child("image1Uri").setValue(image1Uri.toString());
-                    image1Done = true;
-                    if (image1Done && image2Done && image3Done && image4Done) {
-                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                        startActivity(intent);
-                        dialog2.dismiss();
+                                                                dialog2.dismiss();
+                                                                showUploadFailed();
+                                                            }
+                                                        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                                            @Override
+                                                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                                                Uri image2Uri = taskSnapshot.getDownloadUrl();
+                                                                String image2Name = image2Ref.getName();
+                                                                mDatabase.child("auction").child(auction.getAuctionId()).child("image2Name").setValue(image2Name);
+                                                                mDatabase.child("auction").child(auction.getAuctionId()).child("image2Uri").setValue(image2Uri);
+                                                                image2Done = true;
+                                                                if (image1Done && image2Done && image3Done && image4Done) {
+
+                                                                    dialog2.dismiss();
+                                                                    Toast.makeText(getApplicationContext(), "Success!", Toast.LENGTH_SHORT).show();
+                                                                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                                                    startActivity(intent);
+                                                                }
+                                                            }
+                                                        });
+                                                    }
+                                                    if (compressUri3 != null) {
+                                                        final StorageReference image3Ref = uploadImageReference.child("image3" + compressUri3.getLastPathSegment());
+                                                        UploadTask uploadImage3 = image3Ref.putFile(compressUri3);
+                                                        uploadImage3.addOnFailureListener(new OnFailureListener() {
+                                                            @Override
+                                                            public void onFailure(@NonNull Exception e) {
+
+                                                                dialog2.dismiss();
+                                                                showUploadFailed();
+                                                            }
+                                                        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                                            @Override
+                                                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                                                Uri image3Uri = taskSnapshot.getDownloadUrl();
+                                                                String image3Name = image3Ref.getName();
+                                                                mDatabase.child("auction").child(auction.getAuctionId()).child("image3Name").setValue(image3Name);
+                                                                mDatabase.child("auction").child(auction.getAuctionId()).child("image3Uri").setValue(image3Uri);
+                                                                image3Done = true;
+                                                                if (image1Done && image2Done && image3Done && image4Done) {
+
+                                                                    dialog2.dismiss();
+                                                                    Toast.makeText(getApplicationContext(), "Success!", Toast.LENGTH_SHORT).show();
+                                                                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                                                    startActivity(intent);
+                                                                }
+                                                            }
+                                                        });
+                                                    }
+                                                    if (compressUri4 != null) {
+                                                        final StorageReference image4Ref = uploadImageReference.child("image4" + compressUri4.getLastPathSegment());
+                                                        UploadTask uploadImage4 = image4Ref.putFile(compressUri4);
+                                                        uploadImage4.addOnFailureListener(new OnFailureListener() {
+                                                            @Override
+                                                            public void onFailure(@NonNull Exception e) {
+
+                                                                dialog2.dismiss();
+                                                                showUploadFailed();
+                                                            }
+                                                        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+                                                            @Override
+                                                            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                                                                Uri image4Uri = taskSnapshot.getDownloadUrl();
+                                                                String image4Name = image4Ref.getName();
+                                                                mDatabase.child("auction").child(auction.getAuctionId()).child("image4Name").setValue(image4Name);
+                                                                mDatabase.child("auction").child(auction.getAuctionId()).child("image4Uri").setValue(image4Uri);
+                                                                image4Done = true;
+                                                                if (image1Done && image2Done && image3Done && image4Done) {
+                                                                    dialog2.dismiss();
+                                                                    Toast.makeText(getApplicationContext(), "Success!", Toast.LENGTH_SHORT).show();
+                                                                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                                                    startActivity(intent);
+                                                                }
+                                                            }
+                                                        });
+                                                    }
+                                                }
+                                            }
+                                        }).addOnFailureListener(new OnFailureListener() {
+                                            @Override
+                                            public void onFailure(@NonNull Exception e) {
+                                                dialog2.dismiss();
+                                                showUploadFailed();
+                                            }
+                                        });
+                                    }
+                                }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        dialog2.dismiss();
+                                        showUploadFailed();
+                                    }
+                                });
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                dialog2.dismiss();
+                                showUploadFailed();
+                            }
+                        });
                     }
-                }
-            });
-        }
-        if (compressUri2 != null) {
-            final StorageReference image2Ref = uploadImageReference.child("image2" + compressUri2.getLastPathSegment());
-            UploadTask uploadImage2 = image2Ref.putFile(compressUri2);
-            uploadImage2.addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
-
-                }
-            }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    Uri image2Uri = taskSnapshot.getDownloadUrl();
-                    String image2Name = image2Ref.getName();
-                    mDatabase.child("auction").child(auction.getAuctionId()).child("image2Name").setValue(image2Name);
-                    mDatabase.child("auction").child(auction.getAuctionId()).child("image2Uri").setValue(image2Uri);
-                    image2Done = true;
-                    if (image1Done && image2Done && image3Done && image4Done) {
-                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                        startActivity(intent);
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
                         dialog2.dismiss();
+                        showUploadFailed();
                     }
-                }
-            });
-        }
-        if (compressUri3 != null) {
-            final StorageReference image3Ref = uploadImageReference.child("image3" + compressUri3.getLastPathSegment());
-            UploadTask uploadImage3 = image3Ref.putFile(compressUri3);
-            uploadImage3.addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
+                });
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                dialog2.dismiss();
+                showUploadFailed();
+            }
+        });
 
-                }
-            }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    Uri image3Uri = taskSnapshot.getDownloadUrl();
-                    String image3Name = image3Ref.getName();
-                    mDatabase.child("auction").child(auction.getAuctionId()).child("image3Name").setValue(image3Name);
-                    mDatabase.child("auction").child(auction.getAuctionId()).child("image3Uri").setValue(image3Uri);
-                    image3Done = true;
-                    if (image1Done && image2Done && image3Done && image4Done) {
-                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                        startActivity(intent);
-                        dialog2.dismiss();
-                    }
-                }
-            });
-        }
-        if (compressUri4 != null) {
-            final StorageReference image4Ref = uploadImageReference.child("image4" + compressUri4.getLastPathSegment());
-            UploadTask uploadImage4 = image4Ref.putFile(compressUri4);
-            uploadImage4.addOnFailureListener(new OnFailureListener() {
-                @Override
-                public void onFailure(@NonNull Exception e) {
 
-                }
-            }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
-                @Override
-                public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
-                    Uri image4Uri = taskSnapshot.getDownloadUrl();
-                    String image4Name = image4Ref.getName();
-                    mDatabase.child("auction").child(auction.getAuctionId()).child("image4Name").setValue(image4Name);
-                    mDatabase.child("auction").child(auction.getAuctionId()).child("image4Uri").setValue(image4Uri);
-                    image4Done = true;
-                    if (image1Done && image2Done && image3Done && image4Done) {
-                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                        startActivity(intent);
-                        dialog2.dismiss();
-                    }
-                }
-            });
-        }
     }
 
     public void save() {
@@ -644,6 +864,8 @@ public class EditPost extends AppCompatActivity implements
                             dialog2 = new MaterialDialog.Builder(EditPost.this)
                                     .title(R.string.upload_progress_dialog)
                                     .content(R.string.please_wait)
+                                    .cancelable(false)
+                                    .canceledOnTouchOutside(false)
                                     .progress(true, 0)
                                     .progressIndeterminateStyle(true)
                                     .show();

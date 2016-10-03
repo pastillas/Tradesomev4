@@ -1,32 +1,21 @@
 package com.tradesomev4.tradesomev4.m_Model;
 
-import com.google.firebase.database.Exclude;
-
-import java.util.HashMap;
-import java.util.Map;
-
 /**
  * Created by Pastillas-Boy on 7/17/2016.
  */
 public class Notif {
-    String toUserId;
+    String key;
+    String auctionId;
+    String posterId;
     String content;
+    String bidderId;
+    String type;
+    boolean read;
     String date;
-    String notifType;
 
-    public Notif(String toUserId, String content, String date, String notifType) {
-        this.toUserId = toUserId;
-        this.content = content;
-        this.date = date;
-        this.notifType = notifType;
-    }
+    //bid, auctioner, finishAuctioner, finishBidder, finishWinner, itemComplain, userComplain, message
 
-    public String getNotifType() {
-        return notifType;
-    }
-
-    public void setNotifType(String notifType) {
-        this.notifType = notifType;
+    public Notif() {
     }
 
     public String getDate() {
@@ -37,31 +26,12 @@ public class Notif {
         this.date = date;
     }
 
-    @Exclude
-    public Map<String, Object> toMap(){
-        HashMap <String, Object> result = new HashMap<>();
-
-        result.put("toUserId", toUserId);
-        result.put("content", content);
-        result.put("date", date);
-        result.put("notifType", notifType);
-
-        return  result;
+    public String getPosterId() {
+        return posterId;
     }
 
-    public Notif() {
-    }
-    public Notif(String toUserId, String content) {
-        this.toUserId = toUserId;
-        this.content = content;
-    }
-
-    public String getToUserId() {
-        return toUserId;
-    }
-
-    public void setToUserId(String toUserId) {
-        this.toUserId = toUserId;
+    public void setPosterId(String posterId) {
+        this.posterId = posterId;
     }
 
     public String getContent() {
@@ -70,5 +40,56 @@ public class Notif {
 
     public void setContent(String content) {
         this.content = content;
+    }
+
+    public Notif(String key, String auctionId, String posterId, String content, String bidderId, String type, boolean read, String date) {
+        this.key = key;
+        this.auctionId = auctionId;
+        this.posterId = posterId;
+        this.content = content;
+        this.bidderId = bidderId;
+        this.type = type;
+        this.read = read;
+        this.date = date;
+    }
+
+    public String getKey() {
+        return key;
+    }
+
+    public void setKey(String key) {
+        this.key = key;
+    }
+
+    public String getAuctionId() {
+        return auctionId;
+    }
+
+    public void setAuctionId(String auctionId) {
+        this.auctionId = auctionId;
+    }
+
+    public String getBidderId() {
+        return bidderId;
+    }
+
+    public void setBidderId(String bidderId) {
+        this.bidderId = bidderId;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public boolean isRead() {
+        return read;
+    }
+
+    public void setRead(boolean read) {
+        this.read = read;
     }
 }

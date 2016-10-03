@@ -235,20 +235,20 @@ public class NotifAdapter extends RecyclerView.Adapter <NotifAdapter.NotifHolder
         NotifHolder notifHolder = new NotifHolder(view);
 
 
-        if (position > prevPos)
+        /*if (position > prevPos)
             AnimationUtil.animate(notifHolder, true);
         else
             AnimationUtil.animate(notifHolder, false);
-
+        */
         return notifHolder;
     }
 
     @Override
     public void onBindViewHolder(NotifHolder holder, final int position) {
-        if(notifs.get(position).getNotifType().equals("alert")){
+        /*if(notifs.get(position).getNotifType().equals("alert")){
             holder.appAvatar.setImageResource(R.drawable.ic_report_problem_gray_36dp);
         }else
-            holder.appAvatar.setImageResource(R.drawable.logo);
+            holder.appAvatar.setImageResource(R.drawable.logo);*/
 
         holder.title.setText(notifs.get(position).getContent());
         holder.subTitle.setText(CalendarUtils.ConvertMilliSecondsToFormattedDate(notifs.get(position).getDate()));

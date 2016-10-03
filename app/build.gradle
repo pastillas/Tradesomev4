@@ -10,11 +10,11 @@ android {
             // dev utilizes minSDKVersion = 21 to allow the Android gradle plugin
             // to pre-dex each module and produce an APK that can be tested on
             // Android Lollipop without time consuming dex merging processes.
-            minSdkVersion 15
+            minSdkVersion 16
         }
         prod {
             // The actual minSdkVersion for the application.7
-            minSdkVersion 15
+            minSdkVersion 16
         }
     }
 
@@ -68,6 +68,9 @@ dependencies {
     compile 'jp.wasabeef:glide-transformations:2.0.1'
     compile 'com.android.support:multidex:1.0.0'
     compile 'com.pnikosis:materialish-progress:1.7'
+    compile 'com.sothree.slidinguppanel:library:3.3.1'
+    compile 'gun0912.ted:tedbottompicker:1.0.3'
+    compile 'gun0912.ted:tedpermission:1.0.0'
 }
 
 apply plugin: 'com.google.gms.google-services'

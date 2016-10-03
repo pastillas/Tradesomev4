@@ -1,4 +1,4 @@
-package com.tradesomev4.tradesomev4.m_Helpers;
+package com.tradesomev4.tradesomev4.BackgroundProcesses;
 
 import android.Manifest;
 import android.app.Service;
@@ -16,11 +16,20 @@ import android.text.SpannableString;
 import android.text.style.ImageSpan;
 import android.util.Log;
 
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.FirebaseOptions;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.tradesomev4.tradesomev4.R;
+import com.tradesomev4.tradesomev4.m_Helpers.SnackbarWrapper;
+import com.tradesomev4.tradesomev4.m_Model.AuctionHistory;
+
+import java.util.ArrayList;
 
 public class LocationService extends Service {
     private static final String TAG = "BOOMBOOMTESTGPS";
@@ -30,6 +39,8 @@ public class LocationService extends Service {
     private static final String DEBUG_TAG =  "DEBUG_TAG";
     DatabaseReference databaseReference;
     FirebaseUser firebaseUser;
+    ArrayList<AuctionHistory>auctions;
+
 
     private class LocationListener implements android.location.LocationListener {
         Location mLastLocation;
@@ -49,6 +60,11 @@ public class LocationService extends Service {
                 Log.d(DEBUG_TAG, "LONGITUDE_SERVICE: " + mLastLocation.getLongitude());
                 databaseReference.child("users").child(firebaseUser.getUid()).child("latitude").setValue(mLastLocation.getLatitude());
                 databaseReference.child("users").child(firebaseUser.getUid()).child("longitude").setValue(mLastLocation.getLongitude());
+
+                for(int i = 0; i < auctions.size(); i++){
+                    databaseReference.child("auction").child(auctions.get(i).getAuctionId()).child("latitude").setValue(mLastLocation.getLatitude());
+                    databaseReference.child("auction").child(auctions.get(i).getAuctionId()).child("longitude").setValue(mLastLocation.getLongitude());
+                }
             }
 
         }
@@ -85,7 +101,7 @@ public class LocationService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         Log.e(DEBUG_TAG, "onStartCommand");
         super.onStartCommand(intent, flags, startId);
-        return START_STICKY;
+        return START_REDELIVER_INTENT;
     }
 
     public void gpsRestored(){String str = "@ GPS Active";
@@ -117,12 +133,21 @@ public class LocationService extends Service {
         SnackbarWrapper.make(getApplicationContext(), tmp, 3000).show();
     }
 
-    @Override
-    public void onCreate() {
+    public void init(){
         Log.e(DEBUG_TAG, "onCreate");
+
+        try{
+            if(FirebaseApp.getInstance() == null){
+                Context context = getApplicationContext();
+                FirebaseApp.initializeApp(context, FirebaseOptions.fromResource(context));
+            }
+        }catch (IllegalStateException e){
+            Context context = getApplicationContext();
+            FirebaseApp.initializeApp(context, FirebaseOptions.fromResource(context));
+        }
         databaseReference = FirebaseDatabase.getInstance().getReference();
         firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
-
+        listenToMyAuctions();
 
         Log.e(DEBUG_TAG, "onCreate2");
 
@@ -145,6 +170,48 @@ public class LocationService extends Service {
         } catch (IllegalArgumentException ex) {
             Log.d(DEBUG_TAG, "gps provider does not exist " + ex.getMessage());
         }
+    }
+
+    public void listenToMyAuctions(){
+        auctions = new ArrayList<>();
+        try{
+            if(firebaseUser.getUid() != null){
+                databaseReference.child("auctionHistory").child(firebaseUser.getUid()).limitToLast(10).addChildEventListener(new ChildEventListener() {
+                    @Override
+                    public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                        auctions.add(dataSnapshot.getValue(AuctionHistory.class));
+                    }
+
+                    @Override
+                    public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+                    }
+
+                    @Override
+                    public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+                    }
+
+                    @Override
+                    public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void onCreate() {
+        init();
+        //listenToMyAuctions();
     }
 
     @Override

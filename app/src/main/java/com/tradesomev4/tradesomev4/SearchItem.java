@@ -18,6 +18,7 @@ import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.pnikosis.materialishprogress.ProgressWheel;
+import com.tradesomev4.tradesomev4.m_Helpers.Keys;
 import com.tradesomev4.tradesomev4.m_UI.SearchItemAdapter;
 
 public class SearchItem extends AppCompatActivity {
@@ -32,11 +33,13 @@ public class SearchItem extends AppCompatActivity {
     TextView tv_internet_connection;
     ProgressWheel progress_wheel;
     View content_main;
+    Bundle extras;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_item);
+        extras = getIntent().getBundleExtra(Keys.BUNDLE_KEY);
 
         content_main = findViewById(R.id.content_main);
         tv_items_here = (TextView) findViewById(R.id.tv_items_here);

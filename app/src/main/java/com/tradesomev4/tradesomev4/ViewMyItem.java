@@ -4,6 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -11,7 +15,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -20,14 +23,16 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.pnikosis.materialishprogress.ProgressWheel;
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.tradesomev4.tradesomev4.m_Helpers.CalendarUtils;
-import com.tradesomev4.tradesomev4.m_Helpers.DistanceHelper;
 import com.tradesomev4.tradesomev4.m_Helpers.ItemImageSwipe;
 import com.tradesomev4.tradesomev4.m_Model.Auction;
 import com.tradesomev4.tradesomev4.m_Model.User;
+import com.tradesomev4.tradesomev4.m_UI.ParticipantAdapter;
 
 public class ViewMyItem extends AppCompatActivity implements View.OnClickListener {
-
+    private static final String DEBUG_TAG = "DEBUG_TAG";
     private static final String EXTRAS_AUCTION_ID = "AUCTION_ID";
     private static final String EXTRAS_POSTER_ID = "POSTER_ID";
     private static final String EXTRAS_BUNDLE = "EXTRAS_BUNDLE";
@@ -56,12 +61,71 @@ public class ViewMyItem extends AppCompatActivity implements View.OnClickListene
     private Button bidNowBtn;
     private TextView datePost;
     Bundle extras;
+    private SlidingUpPanelLayout mLayout;
+    private RecyclerView recyclerView;
+    private ParticipantAdapter adapter;
+    private SearchView sv;
+    TextView tv_items_here;
+    TextView tv_internet_connection;
+    ProgressWheel progress_wheel;
+    View content_main;
 
+    public void initSlidingUp(){
+        boolean isAttached;
+        onAttachedToWindow();
+        isAttached = true;
+        content_main = findViewById(R.id.content_main);
+        recyclerView = (RecyclerView)findViewById(R.id.rv_participants);
+        adapter = new ParticipantAdapter(this, extras.getString(EXTRAS_AUCTION_ID), fUser.getUid(), isAttached, recyclerView, Glide.with(this), tv_items_here, tv_internet_connection, progress_wheel, content_main);
+        recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+        mLayout.addPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
+            @Override
+            public void onPanelSlide(View panel, float slideOffset) {
+                Log.i(DEBUG_TAG, "onPanelSlide, offset " + slideOffset);
+            }
+
+            @Override
+            public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
+                Log.i(DEBUG_TAG, "onPanelStateChanged " + newState);
+            }
+        });
+        mLayout.setFadeOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+            }
+        });
+        mLayout.setAnchorPoint(0.7f);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_my_item);
+
+        extras = getIntent().getBundleExtra(EXTRAS_BUNDLE);
+        fUser = FirebaseAuth.getInstance().getCurrentUser();
+        mDatabase = FirebaseDatabase.getInstance().getReference();
+        auctionId = extras.getString(EXTRAS_AUCTION_ID);
+        posterId = extras.getString(EXTRAS_POSTER_ID);
+
+        Toolbar toolbar = (Toolbar)findViewById(R.id.main_toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+
+        content_main = findViewById(R.id.sliding_layout);
+        tv_items_here = (TextView) findViewById(R.id.tv_items_here);
+        tv_internet_connection = (TextView) findViewById(R.id.tv_internet_connection);
+        progress_wheel = (ProgressWheel) findViewById(R.id.progress_wheel);
+        tv_items_here.setVisibility(View.GONE);
+        tv_internet_connection.setVisibility(View.GONE);
+
+        initSlidingUp();
+
 
         posterImage = (ImageView) findViewById(R.id.iv_poster_image);
         posterName = (TextView) findViewById(R.id.tv_poster_name);
@@ -82,13 +146,6 @@ public class ViewMyItem extends AppCompatActivity implements View.OnClickListene
         bidNow.setOnClickListener(this);
         bidNowBtn.setOnClickListener(this);
 
-        fUser = FirebaseAuth.getInstance().getCurrentUser();
-
-        extras = getIntent().getBundleExtra(EXTRAS_BUNDLE);
-        mDatabase = FirebaseDatabase.getInstance().getReference();
-
-        auctionId = extras.getString(EXTRAS_AUCTION_ID);
-        posterId = extras.getString(EXTRAS_POSTER_ID);
 
         Query userRef = mDatabase.child("users").child(posterId);
         userRef.addListenerForSingleValueEvent(new ValueEventListener() {
@@ -129,28 +186,7 @@ public class ViewMyItem extends AppCompatActivity implements View.OnClickListene
                 startingBid.setText(" Php" + startidBidAmount);
                 description.append(auction.getDescription());
                 datePost.setText(CalendarUtils.ConvertMilliSecondsToFormattedDate(auction.getPostDate()+ ""));
-
-                Query curUser = mDatabase.child("users").child(fUser.getUid());
-                curUser.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        User user = dataSnapshot.getValue(User.class);
-
-                        userLat = user.getLatitude();
-                        userLong = user.getLongitude();
-
-                        LatLng user1= new LatLng(userLat, userLong);
-                        LatLng user2 = new LatLng(posterLat, posterLong);
-                        Double distanceVal = DistanceHelper.getDistance(user1, user2);
-
-                        distance.setText(DistanceHelper.formatNumber(distanceVal));
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
+                distance.setText("0km");
             }
 
             @Override

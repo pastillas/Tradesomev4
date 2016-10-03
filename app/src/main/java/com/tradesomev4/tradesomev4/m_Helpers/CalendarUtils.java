@@ -1,5 +1,7 @@
 package com.tradesomev4.tradesomev4.m_Helpers;
 
+import android.text.TextUtils;
+
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 
@@ -12,8 +14,12 @@ public class CalendarUtils {
     private static SimpleDateFormat simpleDateFormat = new SimpleDateFormat(dateFormat);
 
     public static String ConvertMilliSecondsToFormattedDate(String milliSeconds){
-        Calendar calendar = Calendar.getInstance();
-        calendar.setTimeInMillis(Long.parseLong(milliSeconds));
-        return simpleDateFormat.format(calendar.getTime());
+        if(TextUtils.isEmpty(milliSeconds)) {
+            return null;
+        }else {
+            Calendar calendar = Calendar.getInstance();
+            calendar.setTimeInMillis(Long.parseLong(milliSeconds));
+            return simpleDateFormat.format(calendar.getTime());
+        }
     }
 }

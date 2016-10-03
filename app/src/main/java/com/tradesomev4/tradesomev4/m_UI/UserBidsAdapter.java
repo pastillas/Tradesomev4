@@ -246,16 +246,17 @@ public class UserBidsAdapter extends RecyclerView.Adapter<UserBidsAdapter.MyBids
         View view = inflater.inflate(R.layout.user_bids_model, parent, false);
         MyBidsHolder holder = new MyBidsHolder(view);
 
-        if (position > prevPos)
+        /*if (position > prevPos)
             AnimationUtil.animate(holder, true);
         else
             AnimationUtil.animate(holder, false);
-
+        */
         return holder;
     }
 
     @Override
     public void onBindViewHolder(final MyBidsHolder holder, int position) {
+        AnimationUtil.setFadeAnimation(holder.itemView);
         holder.bidAmount.setText(bidsHistory.get(position).getTitle());
         String date = CalendarUtils.ConvertMilliSecondsToFormattedDate(String.valueOf(bidsHistory.get(position).getBidDate()));
         holder.bidDate.setText(date);

@@ -43,7 +43,7 @@ public class MyBidsFragment extends Fragment {
 
         rv = (RecyclerView)view.findViewById(R.id.rv_my_bids);
         rv.setLayoutManager(new LinearLayoutManager(getContext()));
-        adapter = new MyBidsAdapter(getContext(), isAttache, rv, Glide.with(this), tv_items_here, tv_internet_connection, progress_wheel, view);
+        adapter = new MyBidsAdapter(getContext(), isAttache, rv, Glide.with(getActivity().getApplicationContext()), tv_items_here, tv_internet_connection, progress_wheel, view);
         rv.setAdapter(adapter);
 
         return view;

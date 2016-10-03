@@ -3,6 +3,8 @@ package com.tradesomev4.tradesomev4;
 import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -21,6 +23,10 @@ import android.widget.Toast;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -37,6 +43,8 @@ import com.tradesomev4.tradesomev4.m_Helpers.DistanceHelper;
 import com.tradesomev4.tradesomev4.m_Helpers.VibrateService;
 import com.tradesomev4.tradesomev4.m_Model.Auction;
 import com.tradesomev4.tradesomev4.m_Model.Bid;
+import com.tradesomev4.tradesomev4.m_Model.Notif;
+import com.tradesomev4.tradesomev4.m_Model.Participant;
 import com.tradesomev4.tradesomev4.m_Model.Rate;
 import com.tradesomev4.tradesomev4.m_Model.User;
 import com.tradesomev4.tradesomev4.m_UI.BidAdapter;
@@ -81,7 +89,7 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
     TextView tv_internet_connection;
     ProgressWheel progress_wheel;
     View content_main;
-
+    ArrayList<Participant> participants;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -90,10 +98,42 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
 
         extras = getIntent().getBundleExtra(EXTRAS_BUNDLE);
 
+
         initViewsDb();
         initData();
+        getParticipants();
     }
 
+    public void getParticipants() {
+        mDatabase.child("auction").child(extras.getString(EXTRAS_AUCTION_ID)).child("participants").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Participant participant = dataSnapshot.getValue(Participant.class);
+                participants.add(participant);
+                adapter.participants = participants;
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
 
     public void initViewsDb() {
         fUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -145,6 +185,8 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
     public void initData() {
         rates = new ArrayList<Rate>();
         total = 0;
+        participants = new ArrayList<Participant>();
+        adapter.participants = participants;
 
         mDatabase.child("users").child(fUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -185,9 +227,9 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
                         .asBitmap().centerCrop()
                         .into(iv_poster_image);
 
-                if(fUser.getUid().equals(posterId)){
+                if (fUser.getUid().equals(posterId)) {
                     distance = 0;
-                }else{
+                } else {
                     LatLng user1 = new LatLng(currentUser.getLatitude(), currentUser.getLongitude());
                     LatLng user2 = new LatLng(user.getLatitude(), user.getLongitude());
                     distance = DistanceHelper.getDistance(user1, user2);
@@ -211,7 +253,11 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
                         .asBitmap().centerCrop()
                         .into(iv_item_image);
 
-                tv_title.setText(auction.getItemTitle());
+                if (auction.getItemTitle().length() > 50) {
+                    String tmp = auction.getItemTitle().subSequence(0, 25) + "...";
+                    tv_title.setText(tmp);
+                } else
+                    tv_title.setText(auction.getItemTitle());
 
                 String currentBid = "Current bid: Php" + auction.getCurrentBid();
                 tv_current_bid.setText(currentBid);
@@ -240,7 +286,7 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
                                 Rate rate = new Rate(fUser.getUid(), ratingBar.getRating());
                                 mDatabase.child("users").child(auction.getUid()).child("rating").child(fUser.getUid()).setValue(rate);
 
-                                if(!fromDb)
+                                if (!fromDb)
                                     Toast.makeText(getApplicationContext(), "Thank you!", Toast.LENGTH_SHORT).show();
                             }
                         });
@@ -316,6 +362,7 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
+
         switch (item.getItemId()) {
             case R.id.auction_info:
                 if (extras.getString(EXTRAS_POSTER_ID).equals(fUser.getUid())) {
@@ -328,6 +375,11 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
                     startActivity(intent);
                 }
                 break;
+            case  android.R.id.home:
+                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(intent);
+                break;
+
         }
         return super.onOptionsItemSelected(item);
     }
@@ -339,16 +391,50 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
             if (extras.getString(EXTRAS_POSTER_ID).equals(fUser.getUid()))
                 showInputDialogAuctioner();
             else {
-                if (distance > 20000) {
+                if (distance > DistanceHelper.getRadius()) {
                     Dialog d = new MaterialDialog.Builder(this)
                             .title("Distance limit")
-                            .content("Sorry, your distance to the auctioneer is greater than 20km.")
+                            .content("Sorry, your distance to the auctioneer is greater than " + DistanceHelper.formatNumber(DistanceHelper.getRadius()))
                             .positiveText(R.string.continueBtn)
                             .show();
                 } else
                     bidNow();
             }
         }
+    }
+
+    public void addParticipant() {
+        mDatabase.child("auction").child(extras.getString(EXTRAS_AUCTION_ID)).child("participants").child(fUser.getUid()).child("id").setValue(fUser.getUid());
+    }
+
+    public void addNotification(Notif notif) {
+        for (int i = 0; i < participants.size(); i++) {
+            Participant participant = participants.get(i);
+
+            if (!participant.getId().equals(fUser.getUid())) {
+                notif.setKey(auction.getAuctionId());
+                mDatabase.child("users").child(participant.getId()).child("notifs").child(auction.getAuctionId()).setValue(notif);
+            }
+        }
+    }
+
+    public Notif newNotif(String type) {
+        Notif notif = new Notif();
+        notif.setType(type);
+        notif.setAuctionId(extras.getString(EXTRAS_AUCTION_ID));
+        notif.setBidderId(fUser.getUid());
+        notif.setRead(false);
+        notif.setDate(DateHelper.getCurrentDateInMil());
+
+        return notif;
+    }
+
+    public void displayDialog() {
+        new MaterialDialog.Builder(this)
+                .title("Falied")
+                .content("Sorry, were having some issues right now. Please try again later thank you.")
+                .positiveText("OK")
+                .show();
     }
 
     public void bidNow() {
@@ -358,10 +444,12 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
             int input = Integer.parseInt(tmp);
 
             if (auction.getCurrentBid() < input) {
+
+                tv_bid_amount.setText(null);
                 mDatabase.child("auction").child(auction.getAuctionId()).child("currentBid").setValue(input);
                 String key = mDatabase.child("auction").child(extras.getString(EXTRAS_AUCTION_ID)).push().getKey();
 
-                Bid bid = new Bid();
+                final Bid bid = new Bid();
                 bid.setAuctionId(extras.getString(EXTRAS_AUCTION_ID));
                 bid.setUserId(fUser.getUid());
                 bid.setTitle("Php" + input);
@@ -374,9 +462,20 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
                 Map<String, Object> childUpdate = new HashMap<>();
                 childUpdate.put("/auction/" + extras.getString(EXTRAS_AUCTION_ID) + "/bid/" + key, bidValues);
                 childUpdate.put("/bidHistory/" + fUser.getUid() + "/" + key, bidValues);
-                mDatabase.updateChildren(childUpdate);
-
-                tv_bid_amount.setText(null);
+                mDatabase.updateChildren(childUpdate).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        displayDialog();
+                    }
+                }).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        addParticipant();
+                        Notif notif = newNotif("bid");
+                        notif.setContent(fUser.getDisplayName() + " bade for " + bid.getTitle() + ": " + auction.getItemTitle());
+                        addNotification(notif);
+                    }
+                });
             } else {
                 Intent intentVibrate = new Intent(getApplicationContext(), VibrateService.class);
                 startService(intentVibrate);
@@ -386,7 +485,7 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
             if (tmp.length() > 9) {
                 Intent intentVibrate = new Intent(getApplicationContext(), VibrateService.class);
                 startService(intentVibrate);
-                tv_bid_amount.setError("Too much numbers.");
+                tv_bid_amount.setError("Too much amount.");
             } else {
                 tv_bid_amount.setError("Place bid: Php");
             }
@@ -398,6 +497,8 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
         String tmp = tv_bid_amount.getText().toString();
 
         if (!TextUtils.isEmpty(tmp) && tmp.length() < 31) {
+
+            tv_bid_amount.setText(null);
             String key = mDatabase.child("auction").child(extras.getString(EXTRAS_AUCTION_ID)).push().getKey();
             Bid bid = new Bid();
             bid.setAuctionId(extras.getString(EXTRAS_AUCTION_ID));
@@ -412,9 +513,21 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
             Map<String, Object> childUpdate = new HashMap<>();
             childUpdate.put("/auction/" + extras.getString(EXTRAS_AUCTION_ID) + "/bid/" + key, bidValues);
             childUpdate.put("/bidHistory/" + fUser.getUid() + "/" + key, bidValues);
-            mDatabase.updateChildren(childUpdate);
-
-            tv_bid_amount.setText(null);
+            mDatabase.updateChildren(childUpdate).addOnFailureListener(new OnFailureListener() {
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    displayDialog();
+                }
+            }).addOnCompleteListener(new OnCompleteListener<Void>() {
+                @Override
+                public void onComplete(@NonNull Task<Void> task) {
+                    addParticipant();
+                    Notif notif = newNotif("auctioner");
+                    notif.setContent(fUser.getDisplayName() + " sent a new message to the bidders");
+                    notif.setPosterId(fUser.getUid());
+                    addNotification(notif);
+                }
+            });
         } else {
             if (tmp.length() > 30)
                 tv_bid_amount.setError("Too long.");
@@ -424,10 +537,20 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
     }
 
     @Override
+    public boolean onNavigateUp() {
+
+        NavUtils.navigateUpFromSameTask(BidNow.this);
+
+        return true;
+    }
+
+
+    @Override
     public void onBackPressed() {
-        super.onBackPressed();
 
         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
         startActivity(intent);
+
+        super.onBackPressed();
     }
 }

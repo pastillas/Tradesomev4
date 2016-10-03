@@ -18,7 +18,7 @@
             android:layout_height="match_parent"
             android:gravity="center_vertical|center_horizontal"
             android:orientation="vertical"
-            android:paddingTop="10dp">
+            android:paddingTop="70dp">
 
             <android.support.v7.widget.CardView
                 android:layout_width="90dp"
@@ -44,6 +44,15 @@
                 android:textSize="16dp"
                 android:tint="@color/gray"/>
 
+            <TextView
+                android:id="@+id/tv_email"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="email"
+                android:layout_gravity="center_vertical|center_horizontal"
+
+                android:theme="@style/userInfo"/>
+
             <RatingBar
                 android:id="@+id/rb_rating_bar"
                 android:layout_width="wrap_content"
@@ -52,7 +61,8 @@
                 android:rating="0"
                 android:stepSize="0.1"
                 android:theme="@style/RatingBar"
-                android:isIndicator="true"/>
+                android:isIndicator="true"
+                android:layout_marginTop="50dp"/>
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -198,76 +208,6 @@
             android:background="@color/gray"></LinearLayout>
 
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:layout_marginTop="20dp"
-            android:layout_marginLeft="102dp">
-
-            <ImageView
-                android:id="@+id/imageView3"
-                android:layout_width="26dp"
-                android:layout_height="26dp"
-                android:src="@drawable/emailicon" />
-
-            <TextView
-                android:id="@+id/tv_email"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="email"
-                android:layout_gravity="center_vertical"
-                android:theme="@style/userInfo"/>
-
-        </LinearLayout>
-
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:layout_marginTop="15dp"
-            android:layout_marginLeft="100dp">
-
-            <ImageView
-                android:id="@+id/imageView4"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:src="@drawable/giftcard"
-                android:tint="@color/giftColor"/>
-
-            <TextView
-                android:id="@+id/tv_birth_date"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="May 17, 1995"
-                android:layout_gravity="center_vertical"
-                android:theme="@style/userInfo"/>
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:orientation="horizontal"
-            android:layout_marginTop="15dp"
-            android:layout_marginLeft="100dp">
-
-            <ImageView
-                android:id="@+id/imageView5"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:src="@drawable/username"/>
-
-            <TextView
-                android:id="@+id/tv_gender"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="3dp"
-                android:text="Male"
-                android:layout_gravity="center_vertical"
-                android:theme="@style/userInfo"/>
-        </LinearLayout>
 
 
     </LinearLayout>

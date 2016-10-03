@@ -273,17 +273,18 @@ public class UserFollowersAdapter extends RecyclerView.Adapter<UserFollowersAdap
         View view = inflater.inflate(R.layout.user_followers_model, parent, false);
         FollowersHolder holder = new FollowersHolder(view);
 
-        if(prevPos > position){
+        /*if(prevPos > position){
             AnimationUtil.animate(holder, true);
         }else{
             AnimationUtil.animate(holder, false);
-        }
+        }*/
 
         return holder;
     }
 
     @Override
     public void onBindViewHolder(final FollowersHolder holder, final int position) {
+        AnimationUtil.setFadeAnimation(holder.itemView);
         Query userQuery = mDatabase.child("users").child(followers.get(position).getId());
         userQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override

@@ -1,8 +1,12 @@
 package com.tradesomev4.tradesomev4;
 
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
@@ -36,8 +40,10 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.pnikosis.materialishprogress.ProgressWheel;
+import com.tradesomev4.tradesomev4.BackgroundProcesses.LocationService;
 import com.tradesomev4.tradesomev4.m_Helpers.GPSTracker;
-import com.tradesomev4.tradesomev4.m_Helpers.LocationService;
+import com.tradesomev4.tradesomev4.m_Helpers.Keys;
+import com.tradesomev4.tradesomev4.m_Helpers.ServiceBroadcastReceiver;
 import com.tradesomev4.tradesomev4.m_Model.User;
 import com.tradesomev4.tradesomev4.m_UI.AuctionAdapter;
 
@@ -57,6 +63,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     ProgressWheel progress_wheel;
     View content_main;
     private GoogleApiClient mGoogleApiClient;
+    NavigationView navigationView;
 
     protected void createLocationRequest() {
         LocationRequest mLocationRequest = new LocationRequest();
@@ -119,11 +126,28 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         initViews(toolbar);
 
         startService(new Intent(getBaseContext(), LocationService.class));
+        Intent intent = new Intent(this, ServiceBroadcastReceiver.class);
+        boolean isRunning = (PendingIntent.getBroadcast(this, 0, intent,PendingIntent.FLAG_NO_CREATE) != null);
+        if(isRunning == false){
+            PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+            AlarmManager alarmManager  = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+            alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), 1000, pendingIntent);
+        }
+
+       //startService(new Intent(getBaseContext(), CurrentUserNotifications.class));
+
+        //startService(new Intent(getBaseContext(), BaseNotificationManager.class));
     }
 
     public void initUserDb() {
         mDatabase = FirebaseDatabase.getInstance().getReference();
         fUser = FirebaseAuth.getInstance().getCurrentUser();
+
+        if(fUser == null){
+            Intent intent = new Intent(getApplicationContext(), CreateAccount.class);
+            startActivity(intent);
+        }
+
         user = new User();
         user.setName(fUser.getDisplayName());
         user.setId(fUser.getUid());
@@ -147,7 +171,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         drawer.setDrawerListener(toggle);
         toggle.syncState();
 
-        NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
+        navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
         View v = navigationView.getHeaderView(0);
         emailT = (TextView) v.findViewById(R.id.name);
@@ -185,7 +209,12 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
+
             super.onBackPressed();
+            Intent intent = new Intent(Intent.ACTION_MAIN);
+            intent.addCategory(Intent.CATEGORY_HOME);
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
         }
     }
 
@@ -204,7 +233,10 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         int id = item.getItemId();
 
         if (id == R.id.search) {
+            Bundle bundle = new Bundle();
+            bundle.putString(Keys.CATEGORY_KEY, "All");
             Intent intent = new Intent(getApplicationContext(), SearchItem.class);
+            intent.putExtra(Keys.BUNDLE_KEY, bundle);
             startActivity(intent);
         }
 
@@ -236,6 +268,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         switch (id) {
             case R.id.nav_home:
+                Intent mainActivityIntent = new Intent(getApplicationContext(), MainActivity.class);
+                startActivity(mainActivityIntent);
                 break;
             case R.id.nav_auction:
                 Intent auctionItemIntent = new Intent(getApplicationContext(), AuctionYourStuff.class);
@@ -290,7 +324,15 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     }
 
     @Override
+    protected void onResume() {
+
+        navigationView.getMenu().getItem(0).setChecked(true);
+        super.onResume();
+    }
+
+    @Override
     public void onConnectionFailed(@NonNull ConnectionResult connectionResult) {
 
     }
+
 }

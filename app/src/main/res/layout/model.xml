@@ -150,7 +150,7 @@
                         android:id="@+id/tv_distance"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="0.5km"
+                        android:text="0"
                         android:textAppearance="?android:attr/textAppearanceMedium"
                         android:theme="@style/detailTextSize" />
 
@@ -168,7 +168,7 @@
                         android:id="@+id/textView7"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Starting bid: "
+                        android:text="Current bid: "
                         android:textAppearance="?android:attr/textAppearanceMedium"
                         android:theme="@style/detailTextSize"/>
 

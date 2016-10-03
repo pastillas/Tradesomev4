@@ -4,6 +4,10 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
+import android.support.v7.widget.SearchView;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -20,14 +24,17 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.pnikosis.materialishprogress.ProgressWheel;
+import com.sothree.slidinguppanel.SlidingUpPanelLayout;
 import com.tradesomev4.tradesomev4.m_Helpers.CalendarUtils;
 import com.tradesomev4.tradesomev4.m_Helpers.DistanceHelper;
 import com.tradesomev4.tradesomev4.m_Helpers.ItemImageSwipe;
 import com.tradesomev4.tradesomev4.m_Model.Auction;
 import com.tradesomev4.tradesomev4.m_Model.User;
+import com.tradesomev4.tradesomev4.m_UI.ParticipantAdapter;
 
 public class ViewItem extends AppCompatActivity implements View.OnClickListener {
-
+    private static final String DEBUG_TAG = "DEBUG_TAG";
     private static final String EXTRAS_AUCTION_ID = "AUCTION_ID";
     private static final String EXTRAS_POSTER_ID = "POSTER_ID";
     private static final String EXTRAS_BUNDLE = "EXTRAS_BUNDLE";
@@ -54,11 +61,65 @@ public class ViewItem extends AppCompatActivity implements View.OnClickListener 
     private TextView datePost;
     private TextView bids;
     Bundle extras;
+    private SlidingUpPanelLayout mLayout;
+    private RecyclerView recyclerView;
+    private ParticipantAdapter adapter;
+    private SearchView sv;
+    TextView tv_items_here;
+    TextView tv_internet_connection;
+    ProgressWheel progress_wheel;
+    View content_main;
+
+    public void initSlidingUp(){
+        boolean isAttached;
+        onAttachedToWindow();
+        isAttached = true;
+        content_main = findViewById(R.id.content_main);
+        recyclerView = (RecyclerView)findViewById(R.id.rv_participants);
+        adapter = new ParticipantAdapter(this, extras.getString(EXTRAS_AUCTION_ID), extras.getString(EXTRAS_POSTER_ID), isAttached, recyclerView, Glide.with(this), tv_items_here, tv_internet_connection, progress_wheel, content_main);
+        recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+
+        mLayout = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
+        mLayout.addPanelSlideListener(new SlidingUpPanelLayout.PanelSlideListener() {
+            @Override
+            public void onPanelSlide(View panel, float slideOffset) {
+                Log.i(DEBUG_TAG, "onPanelSlide, offset " + slideOffset);
+            }
+
+            @Override
+            public void onPanelStateChanged(View panel, SlidingUpPanelLayout.PanelState previousState, SlidingUpPanelLayout.PanelState newState) {
+                Log.i(DEBUG_TAG, "onPanelStateChanged " + newState);
+            }
+        });
+        mLayout.setFadeOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                mLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+            }
+        });
+        mLayout.setAnchorPoint(0.7f);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_item);
+        extras = getIntent().getBundleExtra(EXTRAS_BUNDLE);
+
+        Toolbar toolbar = (Toolbar)findViewById(R.id.main_toolbar);
+        setSupportActionBar(toolbar);
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+
+
+        content_main = findViewById(R.id.sliding_layout);
+        tv_items_here = (TextView) findViewById(R.id.tv_items_here);
+        tv_internet_connection = (TextView) findViewById(R.id.tv_internet_connection);
+        progress_wheel = (ProgressWheel) findViewById(R.id.progress_wheel);
+        tv_items_here.setVisibility(View.GONE);
+        tv_internet_connection.setVisibility(View.GONE);
+
+        initSlidingUp();
 
         posterImage = (ImageView) findViewById(R.id.iv_poster_image);
         posterName = (TextView) findViewById(R.id.tv_poster_name);
@@ -84,7 +145,6 @@ public class ViewItem extends AppCompatActivity implements View.OnClickListener 
 
         fUser = FirebaseAuth.getInstance().getCurrentUser();
 
-        extras = getIntent().getBundleExtra(EXTRAS_BUNDLE);
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
         auctionId = extras.getString(EXTRAS_AUCTION_ID);
@@ -205,6 +265,16 @@ public class ViewItem extends AppCompatActivity implements View.OnClickListener 
                 fileAReport.putExtra(EXTRAS_BUNDLE, extras);
                 startActivity(fileAReport);
                 break;
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mLayout != null &&
+                (mLayout.getPanelState() == SlidingUpPanelLayout.PanelState.EXPANDED || mLayout.getPanelState() == SlidingUpPanelLayout.PanelState.ANCHORED)) {
+            mLayout.setPanelState(SlidingUpPanelLayout.PanelState.COLLAPSED);
+        } else {
+            super.onBackPressed();
         }
     }
 }

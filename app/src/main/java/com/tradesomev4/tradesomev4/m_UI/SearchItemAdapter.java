@@ -15,7 +15,6 @@ import android.widget.Filterable;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseUser;
@@ -37,6 +36,7 @@ import com.tradesomev4.tradesomev4.ViewMyItem;
 import com.tradesomev4.tradesomev4.m_Helpers.CalendarUtils;
 import com.tradesomev4.tradesomev4.m_Helpers.Connectivity;
 import com.tradesomev4.tradesomev4.m_Helpers.DistanceHelper;
+import com.tradesomev4.tradesomev4.m_Helpers.Keys;
 import com.tradesomev4.tradesomev4.m_Helpers.SnackBars;
 import com.tradesomev4.tradesomev4.m_Model.Auction;
 import com.tradesomev4.tradesomev4.m_Model.User;
@@ -103,7 +103,7 @@ public class SearchItemAdapter extends RecyclerView.Adapter<SearchItemAdapter.Au
 
 
     public void timer(){
-        final CountDownTimer c = new CountDownTimer(1000, 1000) {
+        final CountDownTimer c = new CountDownTimer(500, 500) {
 
             @Override
             public void onTick(long l) {
@@ -145,16 +145,15 @@ public class SearchItemAdapter extends RecyclerView.Adapter<SearchItemAdapter.Au
                         if(!isSearching && auctions.size() > 0){
                             hideAll();
                         }else{
-                            if(!isSearching && auctions.size() == 0){
-                                tv_items_here.setText("Followers appear here.");
-                                showItemsHere();
-                            }
+                            if(isSearching)
+                                showLoading();
                         }
                     }
 
+
                     if(auctions.size() == 0 && puta == 2){
                         Log.d(DEBUG_TAG, "PUTA 2: TRUE");
-                        tv_items_here.setText("Followers appear here.");
+                        tv_items_here.setText("Items appear here.");
                         hideAll();
                         showLoading();
                         puta--;
@@ -218,18 +217,93 @@ public class SearchItemAdapter extends RecyclerView.Adapter<SearchItemAdapter.Au
 
     public void addAuction(final int position, DataSnapshot dataSnapshot) {
         final Auction auction = dataSnapshot.getValue(Auction.class);
-        if (auction.isStatus()) {
-            if(category.equals("All")){
-                auctions.add(0, auction);
-                notifyItemInserted(position);
+        if(auction.isHidden() == false && auction.isStatus()){
+            if(!auction.getUid().equals(fUser.getUid())){
+                LatLng user1 = new LatLng(currentUser.getLatitude(), currentUser.getLongitude());
+                LatLng user2 = new LatLng(auction.getLatitude(), auction.getLongitude());
+                Double distance = DistanceHelper.getDistance(user1, user2);
+                if (distance <= DistanceHelper.getRadius()) {
+
+                    if(category.equals("All")){
+                        auctions.add(0, auction);
+                        notifyItemInserted(position);
+                        hideAll();
+                    }else{
+                        if(auction.getCategory().equals(category)){
+                            auctions.add(0, auction);
+                            notifyItemInserted(position);
+                            hideAll();
+                        }
+                    }
+                }
             }else{
-                if(auction.getCategory().equals(category)){
+                if(category.equals("All")){
                     auctions.add(0, auction);
                     notifyItemInserted(position);
+                    hideAll();
+                }else{
+                    if(auction.getCategory().equals(category)){
+                        auctions.add(0, auction);
+                        notifyItemInserted(position);
+                        hideAll();
+                    }
                 }
             }
         }
     }
+
+    public void getAuctionTimer(){
+        CountDownTimer timer = new CountDownTimer(1000, 1000) {
+            @Override
+            public void onTick(long l) {
+
+            }
+
+            @Override
+            public void onFinish() {
+                if(currentUser == null) {
+                    getAuctionTimer();
+                }
+                else{
+                    getAuctions();
+                    return;
+                }
+            }
+        };
+        timer.start();
+    }
+
+    public void getAuctions(){
+        mDatabase.child("auction").addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Log.d(Keys.DEBUG_TAG, dataSnapshot.getKey());
+                addAuction(0, dataSnapshot);
+
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
 
     public SearchItemAdapter(Context context, FirebaseUser fUser, String category, boolean isAttached, RecyclerView recyclerView, RequestManager glide,
                              final TextView tv_items_here, final TextView tv_internet_connection, final ProgressWheel progress_wheel, View view) {
@@ -265,39 +339,10 @@ public class SearchItemAdapter extends RecyclerView.Adapter<SearchItemAdapter.Au
             }
         });
 
-        Query tmp = mDatabase.child("auction");
-        tmp.addChildEventListener(new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                addAuction(0, dataSnapshot);
-
-                hideAll();
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
 
         timer();
         timeOut();
+        getAuctionTimer();
     }
 
     @Override
@@ -305,69 +350,91 @@ public class SearchItemAdapter extends RecyclerView.Adapter<SearchItemAdapter.Au
         View view = inflater.inflate(R.layout.search_item_model, parent, false);
         AuctionHolder holder = new AuctionHolder(view);
 
-        if (position > previousPosition) {
+        /*if (position > previousPosition) {
             AnimationUtil.animate(holder, true);
         } else {
             AnimationUtil.animate(holder, false);
-        }
+        }*/
 
         return holder;
     }
 
     @Override
     public void onBindViewHolder(final AuctionHolder holder, final int position) {
+        AnimationUtil.setFadeAnimation(holder.itemView);
+
         final Query userRef = mDatabase.child("users").child(auctions.get(position).getUid());
-        final Query auctionRef =  mDatabase.child("auction").child(auctions.get(position).getAuctionId());
+        final Query auctionRef = mDatabase.child("auction").child(auctions.get(position).getAuctionId());
 
         auctionListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
                 Auction auction = dataSnapshot.getValue(Auction.class);
-                if(auctions.size() > 0) {
-                    if(auctions.size() == 1){
-                        if(!auction.image1Uri.equals(auctions.get(0).getImage1Uri()) || !auction.getItemTitle().equals(auctions.get(0).getItemTitle())){
-                            auctions.set(0, auction);
 
-                            Glide.with(context)
-                                    .load(auction.getImage1Uri())
-                                    .into(holder.itemImage);
+                if (isAttached) {
+                    try{
+                        glide.load(auction.getImage1Uri())
+                                .asBitmap().centerCrop()
+                                .into(holder.itemImage);
 
-                            //new ImageLoadTask(holder.itemImage).execute(auction.getImage1Uri());
-                            holder.title.setText(auction.getItemTitle());
+                        holder.title.setText(auction.getItemTitle());
 
-                            String date = CalendarUtils.ConvertMilliSecondsToFormattedDate(auction.getDirectoryName());
+                        String date = CalendarUtils.ConvertMilliSecondsToFormattedDate(auction.getDirectoryName());
+                        holder.date.setText(date);
+                    }catch (IndexOutOfBoundsException e){
+                        e.printStackTrace();
+                    }
+                }
 
-                        }else{
-                            Glide.with(context)
-                                    .load(auctions.get(0).getImage1Uri())
-                                    .into(holder.itemImage);
-                            //new ImageLoadTask(holder.itemImage).execute(auctions.get(0).getImage1Uri());
-                            holder.title.setText(auctions.get(0).getItemTitle());
+                if(!auction.getUid().equals(fUser.getUid())){
+                    LatLng user1 = new LatLng(currentUser.getLatitude(), currentUser.getLongitude());
+                    LatLng user2 = new LatLng(auction.getLatitude(), auction.getLongitude());
+                    Double distance = DistanceHelper.getDistance(user1, user2);
 
-                            String date = CalendarUtils.ConvertMilliSecondsToFormattedDate(auctions.get(0).getDirectoryName());
-                        }
+                    holder.distance.setText( "Distance: " + DistanceHelper.formatNumber(distance));
+                    if (distance > DistanceHelper.getRadius()) {
 
-                    }else{
-                        if(!auction.image1Uri.equals(auctions.get(position).getImage1Uri()) || !auction.getItemTitle().equals(auctions.get(position).getItemTitle())){
-                            auctions.set(position, auction);
-
-                            Glide.with(context)
-                                    .load(auctions.get(position).getImage1Uri())
-                                    .asBitmap()
-                                    .into(holder.itemImage);
-                            //new ImageLoadTask(holder.itemImage).execute(auctions.get(position).getImage1Uri());
-                            holder.title.setText(auctions.get(position).getItemTitle());
-                        }else{
-                            //new ImageLoadTask(holder.itemImage).execute(auctions.get(position).getImage1Uri());
-
-                            Glide.with(context)
-                                    .load(auctions.get(position).getImage1Uri())
-                                    .into(holder.itemImage);
-                            holder.title.setText(auctions.get(position).getItemTitle());
-
+                        try{
+                            for (int i = 0; i < auctions.size(); i++) {
+                                if(auctions.get(position).getAuctionId().equals(auctions.get(i).getAuctionId())){
+                                    auctions.remove(i);
+                                    notifyDataSetChanged();
+                                    userRef.removeEventListener(userListener);
+                                    auctionRef.removeEventListener(auctionListener);
+                                    if(auctions.size() == 0)
+                                        timeOut();
+                                    break;
+                                }
+                            }
+                            return;
+                        }catch(IndexOutOfBoundsException e){
+                            e.printStackTrace();
                         }
                     }
                 }
+
+
+                if(!auction.isStatus() || auction.isHidden()){
+                    try{
+                        for (int i = 0; i < auctions.size(); i++) {
+                            if(auctions.get(position).getAuctionId().equals(auctions.get(i).getAuctionId())){
+                                auctions.remove(i);
+                                notifyDataSetChanged();
+                                userRef.removeEventListener(userListener);
+                                auctionRef.removeEventListener(auctionListener);
+                                if(auctions.size() == 0)
+                                    timeOut();
+                                break;
+                            }
+                        }
+                        return;
+                    }catch(IndexOutOfBoundsException e){
+                        e.printStackTrace();
+                    }
+                }
+
+
+
             }
 
             @Override
@@ -376,37 +443,6 @@ public class SearchItemAdapter extends RecyclerView.Adapter<SearchItemAdapter.Au
             }
         };
         auctionRef.addValueEventListener(auctionListener);
-
-        userListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                User user = dataSnapshot.getValue(User.class);
-
-                LatLng user1 = new LatLng(currentUser.getLatitude(), currentUser.getLongitude());
-                LatLng user2 = new LatLng(user.getLatitude(), user.getLongitude() );
-                Double distance = DistanceHelper.getDistance(user1, user2);
-
-                if(distance > 20000){
-                    userRef.removeEventListener(userListener);
-                    auctionRef.removeEventListener(auctionListener);
-
-                    for(int i = 0; i < auctions.size(); i++){
-                        if(user.getId().equals(auctions.get(i).getUid())){
-                            auctions.remove(i);
-                            notifyItemRemoved(i);
-                        }
-                    }
-                    return;
-                }
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        };
-        userRef.addValueEventListener(userListener);
-
 
         if (position > previousPosition) {
             AnimationUtil.animate(holder, true);
@@ -456,12 +492,16 @@ public class SearchItemAdapter extends RecyclerView.Adapter<SearchItemAdapter.Au
         ImageView itemImage;
         TextView title;
         View cont;
+        TextView date;
+        TextView distance;
 
         public AuctionHolder(View itemView) {
             super(itemView);
             itemImage = (ImageView) itemView.findViewById(R.id.item_image_view1);
             title = (TextView) itemView.findViewById(R.id.tv_item_title);
             cont = itemView.findViewById(R.id.cont_search_item);
+            date = (TextView)itemView.findViewById(R.id.date);
+            distance = (TextView)itemView.findViewById(R.id.distance);
         }
     }
 

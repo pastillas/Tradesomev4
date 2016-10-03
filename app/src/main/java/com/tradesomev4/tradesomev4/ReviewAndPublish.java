@@ -10,6 +10,7 @@ import android.os.CountDownTimer;
 import android.os.Handler;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
+import android.support.v4.app.NavUtils;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
@@ -20,16 +21,22 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.afollestad.materialdialogs.util.DialogUtils;
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
@@ -38,6 +45,7 @@ import com.tradesomev4.tradesomev4.m_Helpers.DateHelper;
 import com.tradesomev4.tradesomev4.m_Helpers.SnackBars;
 import com.tradesomev4.tradesomev4.m_Model.Auction;
 import com.tradesomev4.tradesomev4.m_Model.AuctionHistory;
+import com.tradesomev4.tradesomev4.m_Model.User;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -66,6 +74,8 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
     private int accentPreselect;
     private Dialog dialog2;
     private StorageReference imagesReference;
+    private DatabaseReference databaseReference;
+    private User user;
     private FirebaseUser fUser;
     private String image1Name;
     private String image2Name;
@@ -215,12 +225,38 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
         accentPreselect = DialogUtils.resolveColor(this, R.attr.colorAccent);
         imagesReference = FirebaseStorage.getInstance().getReference();
         fUser = FirebaseAuth.getInstance().getCurrentUser();
+        databaseReference = FirebaseDatabase.getInstance().getReference();
+        user = new User();
+        try{
+            if(fUser.getUid()!= null){
+                databaseReference.child("users").child(fUser.getUid()).addValueEventListener(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        user = dataSnapshot.getValue(User.class);
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        failed = false;
         timer();
     }
 
 
     @Override
     public void onBackPressed() {
+       back();
+
+        super.onBackPressed();
+    }
+
+    public void back(){
         Intent intent = new Intent(getApplicationContext(), AuctionYourStuff.class);
         intent.putExtra("image1", compressUri1.toString());
         intent.putExtra("image2", compressUri2.toString());
@@ -232,8 +268,15 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
         intent.putExtra("descriptionStr", descriptionStr);
         intent.putExtra("categoryStr", categoryStr);
         startActivity(intent);
+    }
 
-        super.onBackPressed();
+
+    @Override
+    public boolean onNavigateUp() {
+
+        NavUtils.navigateUpFromSameTask(ReviewAndPublish.this);
+
+        return true;
     }
 
     @Override
@@ -241,7 +284,7 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
         int id = item.getItemId();
 
         if (id == android.R.id.home) {
-            onBackPressed();
+            back();
         }
 
         return super.onOptionsItemSelected(item);
@@ -338,7 +381,8 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
             uploadImage1.addOnFailureListener(new OnFailureListener() {
                 @Override
                 public void onFailure(@NonNull Exception e) {
-
+                    dialog2.dismiss();
+                    showUploadFailed();
                 }
             }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                 @Override
@@ -353,7 +397,8 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
                     uploadImage2.addOnFailureListener(new OnFailureListener() {
                         @Override
                         public void onFailure(@NonNull Exception e) {
-
+                            dialog2.dismiss();
+                            showUploadFailed();
                         }
                     }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                         @Override
@@ -368,7 +413,8 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
                             uploadImage3.addOnFailureListener(new OnFailureListener() {
                                 @Override
                                 public void onFailure(@NonNull Exception e) {
-
+                                    dialog2.dismiss();
+                                    showUploadFailed();
                                 }
                             }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                                 @Override
@@ -382,7 +428,8 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
                                     uploadImage4.addOnFailureListener(new OnFailureListener() {
                                         @Override
                                         public void onFailure(@NonNull Exception e) {
-
+                                            dialog2.dismiss();
+                                            showUploadFailed();
                                         }
                                     }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
                                         @Override
@@ -391,14 +438,8 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
                                             image4Name = image4Ref.getName();
                                             Log.d("Uri4", image4Uri.toString());
 
-                                            if(!isConnected){
-                                                saveToDatabase(image1Uri.toString(), image2Uri.toString(), image3Uri.toString(), image4Uri.toString(), uid, directoryName);
+                                            saveToDatabase(image1Uri.toString(), image2Uri.toString(), image3Uri.toString(), image4Uri.toString(), uid, directoryName);
 
-                                                dialog2.dismiss();
-
-                                                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                                                startActivity(intent);
-                                            }
                                         }
                                     }).addOnFailureListener(new OnFailureListener() {
                                         @Override
@@ -434,14 +475,17 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
         }
     }
 
+    boolean failed;
+
     public void saveToDatabase(final String image1Uri, final String image2Uri, final String image3Uri, final String image4Uri, final String uid, final String directoryName){
         final DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
-        String key = mDatabase.child("auction").push().getKey();
+        final String key = mDatabase.child("auction").push().getKey();
 
         Calendar now = Calendar.getInstance();
         long postDate = now.getTimeInMillis();
 
-        Auction auction = new Auction(uid, key, itemTitleStr, startingBidInt, startingBidInt, categoryStr, descriptionStr, image1Uri, image2Uri, image3Uri, image4Uri, image1Name, image2Name, image3Name, image4Name, directoryName, true, postDate);
+        Auction auction = new Auction(uid, key, itemTitleStr, startingBidInt, startingBidInt, categoryStr, descriptionStr, image1Uri,
+                image2Uri, image3Uri, image4Uri, image1Name, image2Name, image3Name, image4Name, directoryName, true, postDate, user.getLatitude(), user.getLongitude(), false);
         Map<String, Object> postValues = auction.toMap();
 
         Map<String, Object> childUpdates = new HashMap<>();
@@ -451,7 +495,26 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
         Map<String, Object>auctionHisVal = auctionHistory.toMap();
 
         childUpdates.put("/auctionHistory/" + uid + "/" + key, auctionHisVal);
-        mDatabase.updateChildren(childUpdates);
+        mDatabase.updateChildren(childUpdates).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                dialog2.dismiss();
+                mDatabase.child("auction").child(key).child("participants").child(fUser.getUid()).child("id").setValue(fUser.getUid());
+                Toast.makeText(getApplicationContext(), "Success!", Toast.LENGTH_SHORT).show();
+
+                if(!failed){
+                    Intent intent = new Intent(getApplicationContext(),     MainActivity.class);
+                    startActivity(intent);
+                }
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                dialog2.dismiss();
+                failed = true;
+                showUploadFailed();
+            }
+        });
 
     }
 }

@@ -12,11 +12,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.bumptech.glide.RequestManager;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -37,6 +39,7 @@ import com.tradesomev4.tradesomev4.m_Helpers.SnackBars;
 import com.tradesomev4.tradesomev4.m_Model.Auction;
 import com.tradesomev4.tradesomev4.m_Model.Bid;
 import com.tradesomev4.tradesomev4.m_Model.Notif;
+import com.tradesomev4.tradesomev4.m_Model.Participant;
 import com.tradesomev4.tradesomev4.m_Model.User;
 
 import java.util.ArrayList;
@@ -51,6 +54,7 @@ public class BidAdapter extends RecyclerView.Adapter<BidAdapter.BidHolder> {
     private static final String EXTRAS_POSTER_ID = "POSTER_ID";
     private static final String EXTRAS_BUNDLE = "EXTRAS_BUNDLE";
     Context context;
+    DatabaseReference databaseReference;
     LayoutInflater layoutInflater;
     String auctionId;
     String posterId;
@@ -58,7 +62,7 @@ public class BidAdapter extends RecyclerView.Adapter<BidAdapter.BidHolder> {
     FirebaseUser fUser;
     Auction auctionInstance;
     ArrayList<Bid> bids;
-    String name;
+    String name, bidderId;
     Auction auction;
     boolean isAttached;
     RecyclerView recyclerView;
@@ -72,7 +76,7 @@ public class BidAdapter extends RecyclerView.Adapter<BidAdapter.BidHolder> {
     SnackBars snackBars;
     CountDownTimer timeOuttimer;
     int puta;
-
+    public ArrayList<Participant>participants;
 
 
     public void timeOut(){
@@ -193,6 +197,7 @@ public class BidAdapter extends RecyclerView.Adapter<BidAdapter.BidHolder> {
 
     public BidAdapter(Context context, final String auctionId, final String posterId, boolean isAttached, RecyclerView recyclerView, RequestManager glide,
                       final TextView tv_items_here, final TextView tv_internet_connection, final ProgressWheel progress_wheel, View view) {
+        databaseReference = FirebaseDatabase.getInstance().getReference();
         this.context = context;
         this.auctionId = auctionId;
         this.layoutInflater = LayoutInflater.from(context);
@@ -285,10 +290,40 @@ public class BidAdapter extends RecyclerView.Adapter<BidAdapter.BidHolder> {
         BidHolder bidHolder = new BidHolder(view);
 
         if (position > previousPosition)
-            AnimationUtil.animate(bidHolder, true);
+            AnimationUtil.animate2(bidHolder, true);
         else
-            AnimationUtil.animate(bidHolder, false);
+            AnimationUtil.animate2(bidHolder, false);
         return bidHolder;
+    }
+
+    public void addNotification(Notif notif){
+        for(int i = 0; i < participants.size(); i++){
+            Participant participant = participants.get(i);
+
+            if(!participant.getId().equals(fUser.getUid())){
+                String key = databaseReference.child("users").child(participant.getId()).child("notifs").push().getKey();
+                notif.setKey(key);
+                databaseReference.child("users").child(participant.getId()).child("notifs").setValue(notif);
+            }
+        }
+    }
+
+    public Notif newNotif(String type){
+        Notif notif = new Notif();
+        notif.setType(type);
+        notif.setAuctionId(auctionId);
+        notif.setRead(false);
+        notif.setDate(DateHelper.getCurrentDateInMil());
+
+        return  notif;
+    }
+
+    public void displayDialog(){
+        new MaterialDialog.Builder(context.getApplicationContext())
+                .title("Falied")
+                .content("Sorry, were having some issues right now. Please try again later thank you.")
+                .positiveText("OK")
+                .show();
     }
 
     @Override
@@ -301,6 +336,7 @@ public class BidAdapter extends RecyclerView.Adapter<BidAdapter.BidHolder> {
             public void onDataChange(DataSnapshot dataSnapshot) {
                 User user = dataSnapshot.getValue(User.class);
                 name = user.getName();
+                bidderId = user.getId();
 
                 if (isAttached) {
                     glide.load(user.getImage())
@@ -361,56 +397,61 @@ public class BidAdapter extends RecyclerView.Adapter<BidAdapter.BidHolder> {
                                     String choice = which.name();
                                     final DatabaseReference updateStatus = FirebaseDatabase.getInstance().getReference();
                                     if (choice.equals("POSITIVE")) {
-                                        updateStatus.child("auction").child(auctionId).child("status").setValue(false);
-
-                                        final Bid bid = new Bid();
-                                        bid.setAuctionId(auctionId);
-                                        bid.setUserId(fUser.getUid());
-                                        bid.setTitle("I accept the bid of " + name + ", amount: " + bidfinal.getTitle() + ".");
-                                        bid.setBidDate(Long.parseLong(DateHelper.getCurrentDateInMil()));
-
-                                        String key = updateStatus.child("auction").child(auctionId).push().getKey();
-
-                                        Map<String, Object> bidValues = bid.toMap();
-                                        Map<String, Object> childUpdate = new HashMap<>();
-                                        childUpdate.put("/auction/" + auctionId + "/bid/" + key, bidValues);
-                                        updateStatus.updateChildren(childUpdate);
-
-                                        //send notif to auctioner
-                                        String content = auction.getItemTitle() + ": item auction success for " + bidfinal.getTitle()
-                                                + " by " + name;
-                                        Notif notif = new Notif(bidfinal.getUserId(), content, DateHelper.getCurrentDateInMil(), "normal");
-
-                                        key = mDatabase.child("notifications").child(posterId).push().getKey();
-                                        Map<String, Object> notifValue = notif.toMap();
-                                        Map<String, Object> notifChild = new HashMap<String, Object>();
-                                        notifChild.put("/notifications/" + posterId + "/" + key, notifValue);
-                                        updateStatus.updateChildren(notifChild);
-
-                                        //send to bidder
-                                        Query getUserNameRef = updateStatus.child("users").child(bid.getUserId());
-                                        getUserNameRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                                        updateStatus.child("auction").child(auctionId).child("status").setValue(false).addOnCompleteListener(new OnCompleteListener<Void>() {
                                             @Override
-                                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                                User user = dataSnapshot.getValue(User.class);
+                                            public void onComplete(@NonNull Task<Void> task) {
+                                                final Bid bid = new Bid();
+                                                bid.setAuctionId(auctionId);
+                                                bid.setUserId(fUser.getUid());
+                                                bid.setTitle("I accept the bid of " + name + ", amount: " + bidfinal.getTitle() + ".");
+                                                bid.setBidDate(Long.parseLong(DateHelper.getCurrentDateInMil()));
+                                                String key = updateStatus.child("auction").child(auctionId).push().getKey();
+                                                Map<String, Object> bidValues = bid.toMap();
+                                                Map<String, Object> childUpdate = new HashMap<>();
+                                                childUpdate.put("/auction/" + auctionId + "/bid/" + key, bidValues);
+                                                updateStatus.updateChildren(childUpdate);
 
-                                                String content2 = "You won the auctioned item: " + auction.getItemTitle() + " of " + user.getName() + " for " + bidfinal.getTitle();
+                                                //send notif to auctioner
+                                                String content = auction.getItemTitle() + ": item auction success for " + bidfinal.getTitle() + " by " + name;
+                                                Notif notif = new Notif();
+                                                notif.setPosterId(fUser.getUid());
+                                                notif.setBidderId(bidderId);
+                                                notif.setContent(content);
+                                                notif.setType("finishAuctioner");
+                                                notif.setAuctionId(auctionId);
+                                                notif.setRead(true);
+                                                notif.setDate(DateHelper.getCurrentDateInMil());
+                                                String tmpKey = databaseReference.child("users").child(fUser.getUid()).child("notifs").push().getKey();
+                                                notif.setKey(tmpKey);
+                                                databaseReference.child("users").child(fUser.getUid()).child("notifs").child(tmpKey).setValue(notif);
 
-                                                Notif sendTobidder = new Notif(posterId, content2, DateHelper.getCurrentDateInMil(), "normal");
-                                                String key = mDatabase.child("notifications").child(bidfinal.getUserId()).push().getKey();
-                                                Map<String, Object> notifValue = sendTobidder.toMap();
-                                                Map<String, Object> notifChild = new HashMap<String, Object>();
-                                                notifChild.put("/notifications/" + bidfinal.getUserId() + "/" + key, notifValue);
-                                                updateStatus.updateChildren(notifChild);
+                                                String content2 = "You won the auctioned item: " + auction.getItemTitle() + " of " + fUser.getDisplayName() + " for " + bidfinal.getTitle();
+                                                notif.setContent(content2);
+                                                notif.setType("finishWinner");
+                                                notif.setRead(false);
+                                                String tmpKey2 = databaseReference.child("users").child(bidderId).child("notifs").push().getKey();
+                                                notif.setKey(tmpKey2);
+                                                databaseReference.child("users").child(bidderId).child("notifs").child(tmpKey2).setValue(notif);
 
-                                                Toast.makeText(context, "Bid Confirmation Success.", Toast.LENGTH_SHORT).show();
+                                                notif.setType("finishBidder");
+                                                notif.setContent(fUser.getDisplayName() + " accepted the offer of " + name + " for " + bidfinal.getTitle());
+                                                for(int i = 0; i < participants.size(); i++){
+                                                    if(!participants.get(i).getId().equals(bidderId) && !participants.get(i).getId().equals(fUser.getUid())){
+                                                        Participant participant = participants.get(i);
+                                                        String tmpKey3 = databaseReference.child("users").child(participant.getId()).child("notifs").push().getKey();
+                                                        notif.setKey(tmpKey3);
+                                                        databaseReference.child("users").child(participant.getId()).child("notifs").child(tmpKey3).setValue(notif);
+                                                    }
+                                                }
                                             }
-
+                                        }).addOnFailureListener(new OnFailureListener() {
                                             @Override
-                                            public void onCancelled(DatabaseError databaseError) {
-
+                                            public void onFailure(@NonNull Exception e) {
+                                                displayDialog();
                                             }
                                         });
+
+
 
 
                                     }

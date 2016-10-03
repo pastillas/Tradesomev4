@@ -10,15 +10,10 @@
     android:orientation="vertical"
     android:id="@+id/content_main">
 
-    <include
-        android:id="@+id/app_bar_messaging"
-        layout="@layout/app_bar_messaging"/>
-
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1">
-
 
         <android.support.v7.widget.RecyclerView
             android:layout_below="@id/app_bar_messaging"
@@ -33,7 +28,7 @@
             android:id="@+id/tv_items_here"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="Items Appear Here."
+            android:text="Messages Appear Here."
             android:textSize="24dp"
             android:gravity="center"/>
 
@@ -75,7 +70,9 @@
             app:met_primaryColor="?colorAccent"
             android:layout_weight="1"
             app:met_hideUnderline="true"
-            android:layout_marginRight="8dp"/>
+            android:layout_marginRight="8dp"
+            android:singleLine="true"
+            app:met_maxCharacters="150"/>
 
         <ImageButton
             android:id="@+id/bt_send"

@@ -1,14 +1,16 @@
 package com.tradesomev4.tradesomev4;
 
-import android.app.ProgressDialog;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.widget.TextView;
 
+import com.afollestad.materialdialogs.DialogAction;
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -43,7 +45,7 @@ public class ViewItemLocation extends FragmentActivity implements OnMapReadyCall
     private List<Marker>originMarkers = new ArrayList<>();
     private List<Marker>destinationMarkers = new ArrayList<>();
     private List<Polyline> polylinePaths = new ArrayList<>();
-    private ProgressDialog progressDialog;
+    private MaterialDialog progressDialog;
     private String origin;
     private String destination;
 
@@ -132,7 +134,25 @@ public class ViewItemLocation extends FragmentActivity implements OnMapReadyCall
 
     @Override
     public void onDirectionFinderStart() {
-        progressDialog = ProgressDialog.show(this, "Please wait.", "Finding direction..", true);
+
+        progressDialog = new MaterialDialog.Builder(this)
+                .title("Please wait.")
+                .content("Finding direction..")
+                .progress(true, 0)
+                .progressIndeterminateStyle(false)
+                .cancelable(false)
+                .canceledOnTouchOutside(false)
+                .positiveText("CANCEL")
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        progressDialog.dismiss();
+                        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                        startActivity(intent);
+                    }
+                })
+                .show();
+
 
         if(originMarkers != null){
             for(Marker marker : originMarkers){
@@ -188,9 +208,10 @@ public class ViewItemLocation extends FragmentActivity implements OnMapReadyCall
 
     @Override
     public void onBackPressed() {
-        super.onBackPressed();
 
         Intent intent = new Intent(getApplicationContext(), MainActivity.class);
         startActivity(intent);
+
+        super.onBackPressed();
     }
 }

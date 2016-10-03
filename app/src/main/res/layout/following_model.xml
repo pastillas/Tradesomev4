@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/cont_following"
     android:layout_width="match_parent"
-    android:layout_height="60dp"
+    android:layout_height="50dp"
     android:gravity="center_vertical|left"
     android:background="@drawable/background_state_drawable"
     android:clickable="true"
@@ -10,11 +11,19 @@
     android:layout_marginBottom="8dp"
     android:paddingLeft="16dp">
 
-    <ImageView
-        android:id="@+id/iv_following_image"
+    <android.support.v7.widget.CardView
         android:layout_width="36dp"
         android:layout_height="36dp"
-        android:src="@android:drawable/ic_menu_camera" />
+        android:elevation="0dp"
+        app:cardCornerRadius="18dp">
+
+        <ImageView
+            android:id="@+id/iv_following_image"
+            android:layout_width="36dp"
+            android:layout_height="36dp"
+            android:src="@android:drawable/ic_menu_camera" />
+
+    </android.support.v7.widget.CardView>
 
     <TextView
         android:id="@+id/tv_following_name"

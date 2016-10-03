@@ -40,8 +40,8 @@ public class SendUserMesageAdapter extends RecyclerView.Adapter<SendUserMesageAd
     private static final String DEBUG_TAG = "DEBUG_TAG";
     Context context;
     LayoutInflater inflater;
-    ArrayList <UserMessage> messages;
-    DatabaseReference mDatabase ;
+    ArrayList<UserMessage> messages;
+    DatabaseReference mDatabase;
     FirebaseUser fUser;
     String senderImageUrl;
     String senderId;
@@ -63,18 +63,18 @@ public class SendUserMesageAdapter extends RecyclerView.Adapter<SendUserMesageAd
     View parentView;
 
 
-    public void timeOut(){
+    public void timeOut() {
         timeOuttimer = new CountDownTimer(30000, 1000) {
             @Override
             public void onTick(long l) {
-                if(messages.size() > 0){
+                if (messages.size() > 0) {
                     hideAll();
                 }
             }
 
             @Override
             public void onFinish() {
-                if(isConnected && messages.size() == 0)
+                if (isConnected && messages.size() == 0)
                     showItemsHere();
             }
         };
@@ -82,7 +82,7 @@ public class SendUserMesageAdapter extends RecyclerView.Adapter<SendUserMesageAd
         timeOuttimer.start();
     }
 
-    public void timer(){
+    public void timer() {
         final CountDownTimer c = new CountDownTimer(1000, 1000) {
 
             @Override
@@ -93,19 +93,19 @@ public class SendUserMesageAdapter extends RecyclerView.Adapter<SendUserMesageAd
             public void onFinish() {
                 Connectivity connectivity = new Connectivity(context.getApplicationContext());
 
-                if(!connectivity.isConnected()) {
+                if (!connectivity.isConnected()) {
                     isConnectionRestoredShowed = false;
                     isConnected = false;
 
-                    if(puta == 1)
+                    if (puta == 1)
                         puta++;
 
-                    if(!isConnectionDisabledShowed){
+                    if (!isConnectionDisabledShowed) {
                         snackBars.showConnectionDisabledDialog();
                         isConnectionDisabledShowed = true;
                     }
 
-                    if(timeOuttimer != null)
+                    if (timeOuttimer != null)
                         timeOuttimer.cancel();
 
                     showConnectionError();
@@ -113,11 +113,11 @@ public class SendUserMesageAdapter extends RecyclerView.Adapter<SendUserMesageAd
                     isConnected = true;
                     isConnectionDisabledShowed = false;
 
-                    if(puta != 1 && !isConnectionRestoredShowed){
+                    if (puta != 1 && !isConnectionRestoredShowed) {
                         snackBars.showConnectionRestored();
                         isConnectionRestoredShowed = true;
                     }
-                    if(messages.size() == 0 && puta == 2){
+                    if (messages.size() == 0 && puta == 2) {
                         Log.d(DEBUG_TAG, "PUTA 2: TRUE");
                         hideAll();
                         showLoading();
@@ -126,7 +126,7 @@ public class SendUserMesageAdapter extends RecyclerView.Adapter<SendUserMesageAd
                     }
                 }
 
-                if(messages.size() > 0){
+                if (messages.size() > 0) {
                     //hideAll();
                 }
 
@@ -134,59 +134,61 @@ public class SendUserMesageAdapter extends RecyclerView.Adapter<SendUserMesageAd
             }
         }.start();
     }
-    public void hideAll(){
-        if(progress_wheel.getVisibility() == View.VISIBLE)
+
+    public void hideAll() {
+        if (progress_wheel.getVisibility() == View.VISIBLE)
             progress_wheel.setVisibility(View.GONE);
 
-        if(tv_items_here.getVisibility() == View.VISIBLE)
+        if (tv_items_here.getVisibility() == View.VISIBLE)
             tv_items_here.setVisibility(View.GONE);
 
-        if(tv_internet_connection.getVisibility() == View.VISIBLE)
+        if (tv_internet_connection.getVisibility() == View.VISIBLE)
             tv_internet_connection.setVisibility(View.GONE);
     }
 
-    public void showItemsHere(){
-        if(progress_wheel.getVisibility() == View.VISIBLE)
+    public void showItemsHere() {
+        if (progress_wheel.getVisibility() == View.VISIBLE)
             progress_wheel.setVisibility(View.GONE);
 
-        if(tv_internet_connection.getVisibility() == View.VISIBLE)
+        if (tv_internet_connection.getVisibility() == View.VISIBLE)
             tv_internet_connection.setVisibility(View.GONE);
 
-        if(tv_items_here.getVisibility() == View.GONE)
+        if (tv_items_here.getVisibility() == View.GONE)
             tv_items_here.setVisibility(View.VISIBLE);
     }
 
-    public void showLoading(){
-        if(progress_wheel.getVisibility() == View.GONE)
+    public void showLoading() {
+        if (progress_wheel.getVisibility() == View.GONE)
             progress_wheel.setVisibility(View.VISIBLE);
 
-        if(tv_internet_connection.getVisibility() == View.VISIBLE)
+        if (tv_internet_connection.getVisibility() == View.VISIBLE)
             tv_internet_connection.setVisibility(View.GONE);
 
-        if(tv_items_here.getVisibility() == View.VISIBLE)
+        if (tv_items_here.getVisibility() == View.VISIBLE)
             tv_items_here.setVisibility(View.GONE);
     }
 
-    public void showConnectionError(){
-        if(progress_wheel.getVisibility() == View.VISIBLE)
+    public void showConnectionError() {
+        if (progress_wheel.getVisibility() == View.VISIBLE)
             progress_wheel.setVisibility(View.GONE);
 
-        if(tv_items_here.getVisibility() == View.VISIBLE)
+        if (tv_items_here.getVisibility() == View.VISIBLE)
             tv_items_here.setVisibility(View.GONE);
 
-        if(tv_internet_connection.getVisibility() == View.GONE && messages.size() == 0)
+        if (tv_internet_connection.getVisibility() == View.GONE && messages.size() == 0)
             tv_internet_connection.setVisibility(View.VISIBLE);
 
     }
 
-    public void addMessage(UserMessage message){
+    public void addMessage(UserMessage message) {
         messages.add(message);
         notifyItemInserted(getItemCount());
+        mDatabase.child("messages").child(fUser.getUid()).child(senderId).child(message.getKey()).child("read").setValue(true);
         recyclerView.smoothScrollToPosition(getItemCount());
     }
 
     public SendUserMesageAdapter(final Context context, String senderImageUrl, String senderId, RecyclerView recyclerView, boolean isAttached, RequestManager glide,
-                                 final TextView tv_items_here, final TextView tv_internet_connection, final ProgressWheel progress_wheel, View view){
+                                 final TextView tv_items_here, final TextView tv_internet_connection, final ProgressWheel progress_wheel, View view) {
         this.context = context;
         inflater = LayoutInflater.from(context);
         messages = new ArrayList<>();
@@ -198,7 +200,7 @@ public class SendUserMesageAdapter extends RecyclerView.Adapter<SendUserMesageAd
         this.isAttached = isAttached;
         this.glide = glide;
         this.tv_items_here = tv_items_here;
-        this.tv_internet_connection= tv_internet_connection;
+        this.tv_internet_connection = tv_internet_connection;
         this.progress_wheel = progress_wheel;
         isConnectionDisabledShowed = false;
         isConnectionRestoredShowed = false;
@@ -213,7 +215,7 @@ public class SendUserMesageAdapter extends RecyclerView.Adapter<SendUserMesageAd
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
                 UserMessage message = dataSnapshot.getValue(UserMessage.class);
                 addMessage(message);
-
+                Log.d(DEBUG_TAG, "PUTA MESSAGE!!: " + message.getMessage());
                 hideAll();
             }
 
@@ -246,7 +248,7 @@ public class SendUserMesageAdapter extends RecyclerView.Adapter<SendUserMesageAd
     @Override
     public UserViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         View view;
-        UserViewHolder holder = null ;
+        UserViewHolder holder = null;
         int layoutRes = 0;
         switch (viewType) {
             case HEADER_VIEW:
@@ -261,7 +263,7 @@ public class SendUserMesageAdapter extends RecyclerView.Adapter<SendUserMesageAd
                 break;
         }
 
-        return  holder;
+        return holder;
     }
 
     @Override
@@ -269,7 +271,7 @@ public class SendUserMesageAdapter extends RecyclerView.Adapter<SendUserMesageAd
         Log.d("pos", String.valueOf(position));
         UserMessage message = messages.get(position);
 
-        if(fUser.getUid().equals(message.getSenderId()))
+        if (fUser.getUid().equals(message.getSenderId()))
             return HEADER_VIEW;
         else
             return CONTENT_VIEW;
@@ -284,8 +286,9 @@ public class SendUserMesageAdapter extends RecyclerView.Adapter<SendUserMesageAd
 
     @Override
     public void onBindViewHolder(UserViewHolder holder, final int position) {
-        if(getItemViewType(position) == HEADER_VIEW){
-            CurrentUserHolder mHolder = (CurrentUserHolder)holder;
+        AnimationUtil.setFadeAnimation(holder.itemView);
+        if (getItemViewType(position) == HEADER_VIEW) {
+            CurrentUserHolder mHolder = (CurrentUserHolder) holder;
             mHolder.message.setText(messages.get(position).getMessage());
 
             String date = CalendarUtils.ConvertMilliSecondsToFormattedDate(messages.get(position).getSendDate());
@@ -295,15 +298,23 @@ public class SendUserMesageAdapter extends RecyclerView.Adapter<SendUserMesageAd
                 AnimationUtil.animate(mHolder, true);
             else
                 AnimationUtil.animate(mHolder, false);
-        }else{
-            SenderUserHolder mHolder = (SenderUserHolder)holder;
+
+            mHolder.cont.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View view) {
+
+                    return true;
+                }
+            });
+        } else {
+            SenderUserHolder mHolder = (SenderUserHolder) holder;
             mHolder.message.setText(messages.get(position).getMessage());
 
             mHolder.message.setText(messages.get(position).getMessage());
             String date = CalendarUtils.ConvertMilliSecondsToFormattedDate(messages.get(position).getSendDate());
             mHolder.dateSent.setText(date);
 
-            if(isAttached){
+            if (isAttached) {
                 glide.load(senderImageUrl)
                         .asBitmap().centerCrop()
                         .into(mHolder.senderImage);
@@ -323,13 +334,13 @@ public class SendUserMesageAdapter extends RecyclerView.Adapter<SendUserMesageAd
         return messages.size();
     }
 
-    public abstract class UserViewHolder extends RecyclerView.ViewHolder{
+    public abstract class UserViewHolder extends RecyclerView.ViewHolder {
         public UserViewHolder(View itemView) {
             super(itemView);
         }
     }
 
-    public class SenderUserHolder extends  UserViewHolder{
+    public class SenderUserHolder extends UserViewHolder {
         public TextView message;
         public TextView dateSent;
         public ImageView senderImage;
@@ -340,29 +351,30 @@ public class SendUserMesageAdapter extends RecyclerView.Adapter<SendUserMesageAd
             super(itemView);
             mView = itemView;
             contSender = itemView.findViewById(R.id.cont_sender);
-            message = (TextView)mView.findViewById(R.id.tv_message);
-            dateSent = (TextView)mView.findViewById(R.id.tv_send_date);
-            senderImage = (ImageView)mView.findViewById(R.id.iv_send_image);
+            message = (TextView) mView.findViewById(R.id.tv_message);
+            dateSent = (TextView) mView.findViewById(R.id.tv_send_date);
+            senderImage = (ImageView) mView.findViewById(R.id.iv_send_image);
         }
     }
 
-    public class CurrentUserHolder extends  UserViewHolder{
+    public class CurrentUserHolder extends UserViewHolder {
         public TextView message;
         public TextView dateSent;
         public final View mView;
-        public View cont;;
+        public View cont;
+        ;
 
         public CurrentUserHolder(View itemView) {
             super(itemView);
 
             mView = itemView;
             cont = mView.findViewById(R.id.cont_current);
-            message = (TextView)mView.findViewById(R.id.tv_message);
-            dateSent = (TextView)mView.findViewById(R.id.tv_send_date);
+            message = (TextView) mView.findViewById(R.id.tv_message);
+            dateSent = (TextView) mView.findViewById(R.id.tv_send_date);
         }
     }
 
-    public void initSwipe(){
+    public void initSwipe() {
         ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
             public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
@@ -374,26 +386,29 @@ public class SendUserMesageAdapter extends RecyclerView.Adapter<SendUserMesageAd
                 final int pos = viewHolder.getAdapterPosition();
                 parentView.setTag(pos);
                 final UserMessage userMessage = messages.get(pos);
+                //Snackbar.make(view, R.string.notice_removed, Snackbar.LENGTH_SHORT).show();
+
                 messages.remove(pos);
                 notifyItemRemoved(pos);
-                //Snackbar.make(view, R.string.notice_removed, Snackbar.LENGTH_SHORT).show();
-                Snackbar.make(parentView, "Message will be deleted.", Snackbar.LENGTH_LONG)
+                notifyItemRangeChanged(pos, getItemCount());
+                Snackbar.make(parentView, "Done.", Snackbar.LENGTH_LONG)
                         .setCallback(new Snackbar.Callback() {
                             @Override
                             public void onDismissed(Snackbar snackbar, int event) {
-                                Log.d(DEBUG_TAG, "ONDISMESSED: TRUE" + userMessage.getKey());
-                                if(isConnected){
-                                    Map<String, Object>children = new HashMap<String, Object>();
-                                    children.put("/messages/" + fUser.getUid() + "/" + senderId + "/" + messages.get(pos).getKey(), null);
+                                try {
+                                    if (event != DISMISS_EVENT_ACTION && messages.size() != 0) {
+                                        Log.d(DEBUG_TAG, "ONDISMESSED: TRUE" + userMessage.getKey());
+                                        Map<String, Object> children = new HashMap<String, Object>();
+                                        children.put("/messages/" + fUser.getUid() + "/" + senderId + "/" + userMessage.getKey(), null);
 
-                                    mDatabase.updateChildren( children);
+                                        mDatabase.updateChildren(children);
 
-                                    messages.remove(pos);
-                                    notifyDataSetChanged();
-                                }else{
-                                    messages.add(pos, userMessage);
-                                    notifyItemInserted(pos);
-                                    snackBars.showCheckYourConnection();
+                                        if (messages.size() == 0)
+                                            showItemsHere();
+                                    }
+
+                                } catch (IndexOutOfBoundsException e) {
+                                    e.printStackTrace();
                                 }
                             }
                         })

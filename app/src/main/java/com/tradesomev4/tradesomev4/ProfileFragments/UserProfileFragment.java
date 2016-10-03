@@ -98,6 +98,7 @@ public class UserProfileFragment extends Fragment implements View.OnClickListene
                         .into(profPic);
                 name.setText(user.getName());
                 email.setText(user.getEmail());
+
             }
 
             @Override
@@ -182,11 +183,8 @@ public class UserProfileFragment extends Fragment implements View.OnClickListene
         followingSum = (TextView) view.findViewById(R.id.tv_following);
         followers = (TextView) view.findViewById(R.id.tv_followers);
         pin = (ImageView) view.findViewById(R.id.iv_pin);
-        rate = (ImageView) view.findViewById(R.id.iv_rate);
         sendMessage = (ImageView) view.findViewById(R.id.iv_send_message);
         email = (TextView) view.findViewById(R.id.tv_email);
-        bDate = (TextView) view.findViewById(R.id.tv_birth_date);
-        gender = (TextView) view.findViewById(R.id.tv_gender);
         ratingBar = (RatingBar) view.findViewById(R.id.rb_rating_bar);
 
 
@@ -202,7 +200,6 @@ public class UserProfileFragment extends Fragment implements View.OnClickListene
         bidAuction.setOnClickListener(this);
         follow.setOnClickListener(this);
         pin.setOnClickListener(this);
-        rate.setOnClickListener(this);
         sendMessage.setOnClickListener(this);
 
         return view;
@@ -285,8 +282,6 @@ public class UserProfileFragment extends Fragment implements View.OnClickListene
                 Intent viewItemlocation = new Intent(getContext(), ViewItemLocation.class);
                 viewItemlocation.putExtra(EXTRAS_BUNDLE, extras);
                 startActivity(viewItemlocation);
-                break;
-            case R.id.iv_rate:
                 break;
             case R.id.iv_send_message:
                 Bundle argsSendMessage = new Bundle();
