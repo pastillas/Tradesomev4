@@ -12,6 +12,15 @@ public class Notif {
     String type;
     boolean read;
     String date;
+    boolean received;
+
+    public boolean isReceived() {
+        return received;
+    }
+
+    public void setReceived(boolean received) {
+        this.received = received;
+    }
 
     //bid, auctioner, finishAuctioner, finishBidder, finishWinner, itemComplain, userComplain, message
 

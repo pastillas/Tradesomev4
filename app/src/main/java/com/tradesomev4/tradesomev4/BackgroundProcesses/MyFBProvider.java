@@ -12,7 +12,10 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 
 /**
- * Created by Pastillas-Boy on 9/23/2016.
+ * Created by Jorge Benigno Pante, Joshua Alarcon, Charles Torrente on 9/23/2016.
+ * File Name: NotificationService.java
+ * File Path: H:\SP\Tradesomev4\app\src\main\java\com\tradesomev4\tradesomev4\BackgroundProcesses\MyFBProvider.java
+ * Description: initialized Firebase API Provider if not initialized.
  */
 public class MyFBProvider extends ContentProvider {
     private static final String DEBUG_TAG = "DEBUG_TAG";

@@ -54,10 +54,10 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
     private ImageView myBidsAuctions;
     private ArrayList<Rate> rates;
     private float total;
+    int bidsInt;
+    int auctionsInt;
 
     public void getData(){
-
-
         mDatabase.child("users").child(fUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -67,6 +67,37 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
                 extras.putDouble(LAT_KEY, user.getLatitude());
                 extras.putDouble(LONG_KEY, user.getLongitude());
                 extras.putString(NAME_KEY, user.getName());
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public void getBids(){
+        mDatabase.child("bidHistory").child(fUser.getUid()).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                bidsInt = (int)dataSnapshot.getChildrenCount();
+                bids.setText(bidsInt+"");
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+
+    public void getAuctions(){
+        mDatabase.child("auctionHistory").child(fUser.getUid()).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                auctionsInt = (int) dataSnapshot.getChildrenCount();
+                auctions.setText(auctionsInt+"");
             }
 
             @Override
@@ -124,6 +155,7 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
 
         getData();
 
+
         profPic = (ImageView) view.findViewById(R.id.iv_prof_pic);
         name = (TextView) view.findViewById(R.id.tv_name);
         bids = (TextView) view.findViewById(R.id.tv_bids);
@@ -140,6 +172,8 @@ public class ProfileFragment extends Fragment implements View.OnClickListener {
         pin.setOnClickListener(this);
         myBidsAuctions.setOnClickListener(this);
 
+        getAuctions();
+        getBids();
 
         return view;
     }

@@ -53,10 +53,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".CreateAccount" />
-        <activity
-            android:name="com.facebook.FacebookActivity"
-            android:configChanges="keyboard|keyboardHidden|screenLayout|screenSize|orientation"
-            android:label="@string/app_name" />
         <activity android:name=".Search" />
         <activity
             android:name=".MainActivity"
@@ -170,7 +166,8 @@
         <activity
             android:name=".BidNow"
             android:label="Bid Now"
-            android:theme="@style/AppTheme">
+            android:theme="@style/AppTheme"
+            android:launchMode="singleTop">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.tradesomev4.tradesomev4.MainActivity" />
@@ -401,40 +398,16 @@
                 <action android:name="com.google.firebase.INSTANCE_ID_EVENT" />
             </intent-filter>
         </service>
-        <!-- [END firebase_iid_service] -->
-
-        <service
-            android:name=".BackgroundProcesses.CurrentUserNotifications"
-            android:enabled="true"
-            android:exported="true"
-            android:process=":remote"></service>
-
-        <provider
-            android:name=".BackgroundProcesses.MyFBProvider"
-            android:authorities="com.tradesomev4.tradesomev4.BackgroundProcesses.MyFBProvider"
-            android:process=":BackgroundProcesses.CurrentUserNotifications"
-            android:exported="false"
-            android:syncable="false" />
-
-        <receiver
-            android:name=".BackgroundProcesses.BaseNotificationManager"
-            android:enabled="true"
-            android:exported="true">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
-        <receiver android:name=".m_Helpers.ServiceBroadcastReceiver">
+        <receiver android:name=".BackgroundProcesses.ServiceBroadcastReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
                 <action android:name="android.intent.action.USER_PRESENT" />
                 <action android:name="android.intent.action.USER_UNLOCKED" />
             </intent-filter>
         </receiver>
-        <service android:name=".m_Helpers.NotificationReceiver"
+        <service android:name=".BackgroundProcesses.NotificationReceiver"
             android:enabled="true"
-            android:exported="true"
-            android:process=":remote"></service>
+            android:exported="true" />
     </application>
 
 </manifest>

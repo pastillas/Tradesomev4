@@ -25,14 +25,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
-import com.facebook.AccessToken;
-import com.facebook.CallbackManager;
-import com.facebook.FacebookCallback;
-import com.facebook.FacebookException;
-import com.facebook.FacebookSdk;
-import com.facebook.login.LoginManager;
-import com.facebook.login.LoginResult;
-import com.facebook.login.widget.LoginButton;
 import com.google.android.gms.auth.api.Auth;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -56,7 +48,6 @@ import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
-import com.google.firebase.auth.FacebookAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.GoogleAuthProvider;
@@ -76,10 +67,8 @@ public /*abstract*/ class CreateAccount extends FragmentActivity implements Goog
     private static final String DEBUG_TAG = "DEBUG_TAG";
     private static final int RC_SIGN_IN = 9001;
     public User user;
-    private LoginButton fbSignInB;
     private FirebaseAuth mAuth;
     private FirebaseAuth.AuthStateListener mAuthListener;
-    private CallbackManager callbackManager;
     private GoogleSignInOptions gso;
     private SignInButton signInButton;
     private GoogleApiClient mGoogleApiClient;
@@ -120,7 +109,6 @@ public /*abstract*/ class CreateAccount extends FragmentActivity implements Goog
         user = new User();
         initFirebaseAuth();
         isUserExists = false;
-        FacebookSdk.sdkInitialize(this);
         setContentView(R.layout.create_account_activity);
         view = findViewById(R.id.layout);
         snackbars = new SnackBars(view, getApplicationContext());
@@ -137,18 +125,9 @@ public /*abstract*/ class CreateAccount extends FragmentActivity implements Goog
 
         findViewById(R.id.signInButton).setOnClickListener(this);
         initGoogleApi(savedInstanceState);
-        initFbSignIn();
         databaseReference = FirebaseDatabase.getInstance().getReference();
 
-        if(isFacebookLoggedIn())
-            signoutFacebook();
     }
-
-    public boolean isFacebookLoggedIn() {
-        AccessToken accessToken = AccessToken.getCurrentAccessToken();
-        return accessToken != null;
-    }
-
     public void checkUserIfExists(final int type){
         databaseReference.child("users").child(fUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -163,9 +142,6 @@ public /*abstract*/ class CreateAccount extends FragmentActivity implements Goog
                         loadingDialog.dismiss();
                         signOut();
 
-                        if(type == 0)
-                            signoutFacebook();
-
                         snackbars.isAccountBlocked();
                     }else{
                         String token = FirebaseInstanceId.getInstance().getToken();
@@ -179,8 +155,6 @@ public /*abstract*/ class CreateAccount extends FragmentActivity implements Goog
                             @Override
                             public void onFailure(@NonNull Exception e) {
                                 loadingDialog.dismiss();
-                                if(type == 0)
-                                    signoutFacebook();
                                 snackbars.showCheckYourConnection();
                                 FirebaseAuth.getInstance().signOut();
                             }
@@ -208,9 +182,6 @@ public /*abstract*/ class CreateAccount extends FragmentActivity implements Goog
                                 loadingDialog.dismiss();
                                 signOut();
 
-                                if(type == 0)
-                                    LoginManager.getInstance().logOut();
-
                                 showPakonSwelo();
                             }
                         });
@@ -218,8 +189,6 @@ public /*abstract*/ class CreateAccount extends FragmentActivity implements Goog
                         snackbars.failedToGetLocation();
                     }
                 }
-
-                //toMainActivity();
             }
 
             @Override
@@ -228,12 +197,6 @@ public /*abstract*/ class CreateAccount extends FragmentActivity implements Goog
             }
         });
     }
-
-    private void signoutFacebook() {
-        LoginManager.getInstance().logOut();
-        Log.d(DEBUG_TAG, "FACEBOOK LOGOUT: TRUE");
-    }
-
     public void showPakonSwelo(){
         Dialogs.showPakonSwelo(this);
     }
@@ -256,18 +219,9 @@ public /*abstract*/ class CreateAccount extends FragmentActivity implements Goog
             if(gps_enabled && network_enabled && isConnected) {
                 Log.d(DEBUG_TAG, "AUTH: onAuthStateChanged: signed_in:" + fUser.getUid());
                 checkUserIfExists(type);
-
-
-                Log.d(DEBUG_TAG, "PUTANG INA FACEBOOK: TRUE");
             }else{
                 loadingDialog.dismiss();
                 signOut();
-
-                Log.d(DEBUG_TAG, "PUTANG INA FACEBOOK: FALSE");
-
-
-                if(type == 0)
-                    signoutFacebook();
 
                 if(!gps_enabled || !network_enabled)
                     snackbars.showGpsDiabledDialog();
@@ -277,9 +231,6 @@ public /*abstract*/ class CreateAccount extends FragmentActivity implements Goog
         } else {
             if(loadingDialog != null)
             loadingDialog.dismiss();
-
-            if(type == 0)
-                signoutFacebook();
 
             Log.d(DEBUG_TAG, "AUTH: onAuthStateChanged:signed_out");
         }
@@ -393,61 +344,11 @@ public /*abstract*/ class CreateAccount extends FragmentActivity implements Goog
     }
 
 
-    public void initFbSignIn(){
-        callbackManager = CallbackManager.Factory.create();
-        fbSignInB = (LoginButton) findViewById(R.id.fbSignInB);
-        fbSignInB.setReadPermissions("email", "public_profile");
-        fbSignInB.registerCallback(callbackManager, new FacebookCallback<LoginResult>() {
-            @Override
-            public void onSuccess(LoginResult loginResult) {
-                //showLoadingDialog();
-                Log.d(DEBUG_TAG, "facebook:onSuccess:" + loginResult);
-                showLoadingDialog();
-                handleFacebookAccessToken(loginResult.getAccessToken());
-            }
 
-            @Override
-            public void onCancel() {
-                Log.d(DEBUG_TAG, "facebook:onCancel");
-            }
-
-            @Override
-            public void onError(FacebookException error) {
-                snackbars.showCheckYourConnection();
-                Log.d(DEBUG_TAG, "facebook:onError", error);
-            }
-        });
-    }
-
-    private void handleFacebookAccessToken(AccessToken token) {
-        Log.d(DEBUG_TAG, "handleFacebookAccessToken:" + token);
-
-        AuthCredential credential = FacebookAuthProvider.getCredential(token.getToken());
-        mAuth.signInWithCredential(credential)
-                .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
-                    @Override
-                    public void onComplete(@NonNull Task<AuthResult> task) {
-                        Log.d(DEBUG_TAG, "signInWithCredential:onComplete:" + task.isSuccessful());
-
-                        if (!task.isSuccessful()) {
-                            Log.w(DEBUG_TAG, "signInWithCredential", task.getException());
-
-                            loadingDialog.dismiss();
-                            signoutFacebook();
-                            signOut();
-
-                            snackbars.isEmailAlreadyUsed();
-                        }else{
-                            getFirebaseUser(0);
-                        }
-                    }
-                });
-    }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        //callbackManager.onActivityResult(requestCode, resultCode, data);
 
         if (requestCode == RC_SIGN_IN) {
             GoogleSignInResult result = Auth.GoogleSignInApi.getSignInResultFromIntent(data);
@@ -475,8 +376,7 @@ public /*abstract*/ class CreateAccount extends FragmentActivity implements Goog
                         mGoogleApiClient.connect();
                     }
                 }
-            } else
-                callbackManager.onActivityResult(requestCode, resultCode, data);
+            }
         }
     }
 
@@ -729,14 +629,6 @@ public /*abstract*/ class CreateAccount extends FragmentActivity implements Goog
                 break;
         }
     }
-
-    public void saveData(){
-        user.saveUser(user);
-
-        if(loadingDialog != null)
-            loadingDialog.dismiss();
-    }
-
     public void toMainActivity(){
         if(loadingDialog != null)
             loadingDialog.dismiss();

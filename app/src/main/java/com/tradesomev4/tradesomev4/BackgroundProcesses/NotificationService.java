@@ -15,7 +15,10 @@ import com.tradesomev4.tradesomev4.MainActivity;
 import com.tradesomev4.tradesomev4.R;
 
 /**
- * Created by Pastillas-Boy on 9/19/2016.
+ * Created by Jorge Benigno Pante, Joshua Alarcon, Charles Torrente on 9/19/2016.
+ * File Name: NotificationService.java
+ * File Path: Tradesomev4\app\src\main\java\com\tradesomev4\tradesomev4\BackgroundProcesses\NotificationService.java
+ * Description: Create a notification when an action signal is received from android OS.
  */
 public class NotificationService extends FirebaseMessagingService {
     private static final String DEBUG_TAG = "DEBUG_TAG";

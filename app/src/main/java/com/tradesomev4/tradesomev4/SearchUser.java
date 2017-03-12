@@ -12,7 +12,10 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.pnikosis.materialishprogress.ProgressWheel;
+import com.tradesomev4.tradesomev4.m_Helpers.IsBlockedListener;
 import com.tradesomev4.tradesomev4.m_UI.SearchUserAdapter;
 
 public class SearchUser extends AppCompatActivity {
@@ -23,13 +26,15 @@ public class SearchUser extends AppCompatActivity {
     TextView tv_internet_connection;
     ProgressWheel progress_wheel;
     View content_main;
+    FirebaseUser firebaseUser;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_search_user);
-
+        firebaseUser = FirebaseAuth.getInstance().getCurrentUser();
+        new IsBlockedListener(this, false, firebaseUser.getUid());
 
         content_main = findViewById(R.id.content_main);
         tv_items_here = (TextView) findViewById(R.id.tv_items_here);

@@ -19,6 +19,9 @@ import android.widget.TextView;
 import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -216,22 +219,12 @@ public class FileItemComplain extends AppCompatActivity implements AdapterView.O
         }
     }
 
-    public void showBasic() {
+    public void success(){
         Dialog d = new MaterialDialog.Builder(this)
                 .title("Tradesome")
                 .content("Your complain has succesfully sent.")
                 .positiveText(R.string.continueBtn)
                 .show();
-
-        String key = mDatabase.child("itemComplain").push().getKey();
-        ItemComplain itemComplain = new ItemComplain(
-                String.valueOf(reasonForReportSpinner.getSelectedItem()),
-                String.valueOf(detailedReasonSpinner.getSelectedItem()),
-                auctionId, fUser.getUid(), posterId, key, DateHelper.getCurrentDateInMil());
-        Map<String, Object> map = itemComplain.toMap();
-        Map<String, Object> values = new HashMap<>();
-        values.put("/itemComplain/" + key, map);
-        mDatabase.updateChildren(values);
 
         d.setOnDismissListener(new DialogInterface.OnDismissListener() {
             @Override
@@ -240,8 +233,43 @@ public class FileItemComplain extends AppCompatActivity implements AdapterView.O
                 startActivity(intent);
             }
         });
+    }
+
+    public void failed(){
+        Dialog d = new MaterialDialog.Builder(this)
+                .title("Failed")
+                .content("Sorry, We're having some issues right now. Please try again later. Thank you.")
+                .positiveText(R.string.continueBtn)
+                .show();
+    }
+
+    public void showBasic() {
+
+        String key = mDatabase.child("itemComplain").push().getKey();
+        ItemComplain itemComplain = new ItemComplain(
+                String.valueOf(reasonForReportSpinner.getSelectedItem()),
+                String.valueOf(detailedReasonSpinner.getSelectedItem()),
+                auctionId, fUser.getUid(), posterId, key, DateHelper.getCurrentDateInMil(), false);
+        Map<String, Object> map = itemComplain.toMap();
+        Map<String, Object> values = new HashMap<>();
+        values.put("/itemComplain/" + key, map);
+        mDatabase.updateChildren(values).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                success();
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                failed();
+            }
+        });
+
+
 
     }
+
+
 
     @Override
     public void onBackPressed() {

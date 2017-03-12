@@ -3,6 +3,7 @@ package com.tradesomev4.tradesomev4.ProfileFragments;
 import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
@@ -15,6 +16,9 @@ import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.bumptech.glide.Glide;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.ChildEventListener;
@@ -39,9 +43,14 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by Pastillas-Boy on 7/22/2016.
- */
+
+/*
+* Created by: Joshua Alarcon, Jorge Benigno Pant, Charles Torrente on 7/22/2016.
+* File Name: UserProfileFragment.java
+* File Path: Tradesomev4\app\src\main\java\com\tradesomev4\tradesomev4\ProfileFragments\UserProfileFragment.java
+* Desciption: View other user's Profile.
+*/
+
 public class UserProfileFragment extends Fragment implements View.OnClickListener {
     private static final String EXTRAS_POSTER_ID = "POSTER_ID";
     private static final String EXTRAS_BUNDLE = "EXTRAS_BUNDLE";
@@ -78,6 +87,8 @@ public class UserProfileFragment extends Fragment implements View.OnClickListene
     private Dialog comfirmDialog;
     private ArrayList<Rate>rates;
     private float total;
+    int auctionsInt;
+    int bidsInt;
 
 
     public static UserProfileFragment getInstance(Bundle extras) {
@@ -159,6 +170,35 @@ public class UserProfileFragment extends Fragment implements View.OnClickListene
 
     }
 
+    public void getBids(){
+        mDatabase.child("bidHistory").child(extras.getString(EXTRAS_POSTER_ID)).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                bidsInt = (int)dataSnapshot.getChildrenCount();
+                bids.setText(bidsInt+"");
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    public void getAuctions(){
+        mDatabase.child("auctionHistory").child(extras.getString(EXTRAS_POSTER_ID)).addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                auctionsInt = (int) dataSnapshot.getChildrenCount();
+                auctions.setText(auctionsInt+"");
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
 
 
     @Nullable
@@ -201,6 +241,11 @@ public class UserProfileFragment extends Fragment implements View.OnClickListene
         follow.setOnClickListener(this);
         pin.setOnClickListener(this);
         sendMessage.setOnClickListener(this);
+        auctionsInt = 0;
+        bidsInt = 0;
+
+        getBids();
+        getAuctions();
 
         return view;
     }
@@ -303,16 +348,30 @@ public class UserProfileFragment extends Fragment implements View.OnClickListene
                             dialog.dismiss();
 
                             String key = mDatabase.child("userComplains").push().getKey();
-                            UserComplain userComplain = new UserComplain(which, fUser.getUid(), extras.getString(EXTRAS_POSTER_ID), key, DateHelper.getCurrentDateInMil());
+                            UserComplain userComplain = new UserComplain(which, fUser.getUid(), extras.getString(EXTRAS_POSTER_ID), key, DateHelper.getCurrentDateInMil(), false);
                             Map<String, Object> map = userComplain.toMap();
                             Map<String, Object> addChild = new HashMap<String, Object>();
                             addChild.put("/userComplains/" + key, map);
-                            mDatabase.updateChildren(addChild);
-                            Dialog d = new MaterialDialog.Builder(getContext())
-                                    .title("Tradesome")
-                                    .content("Your complain has succesfully sent.")
-                                    .positiveText(R.string.continueBtn)
-                                    .show();
+                            mDatabase.updateChildren(addChild).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                @Override
+                                public void onComplete(@NonNull Task<Void> task) {
+                                    Dialog d = new MaterialDialog.Builder(getContext())
+                                            .title("Success")
+                                            .content("Your complain was succesfully sent.")
+                                            .positiveText(R.string.continueBtn)
+                                            .show();
+                                }
+                            }).addOnFailureListener(new OnFailureListener() {
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    Dialog d = new MaterialDialog.Builder(getContext())
+                                            .title("Failed")
+                                            .content("Sorry, We're having some issues right now. Please try again later. Thank you.")
+                                            .positiveText(R.string.continueBtn)
+                                            .show();
+                                }
+                            });
+
 
                             return true;
                         }

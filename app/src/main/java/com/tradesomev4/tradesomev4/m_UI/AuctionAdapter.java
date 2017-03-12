@@ -23,7 +23,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.pnikosis.materialishprogress.ProgressWheel;
 import com.tradesomev4.tradesomev4.BidNow;
@@ -52,6 +51,7 @@ public class AuctionAdapter extends RecyclerView.Adapter<AuctionAdapter.AuctionH
     private static final String DEBUG_TAG = "DEBUG_TAG";
     Context context;
     ArrayList<Auction> auctions;
+    ArrayList<User> auctioners;
     LayoutInflater inflater;
     RecyclerView recyclerView;
     private static final String EXTRAS_AUCTION_ID = "AUCTION_ID";
@@ -65,8 +65,6 @@ public class AuctionAdapter extends RecyclerView.Adapter<AuctionAdapter.AuctionH
     FirebaseUser fUser;
     User currentUser;
     DatabaseReference mDatabase;
-    public ValueEventListener userListener;
-    public ValueEventListener auctionListener;
     boolean isAttached;
     RequestManager glide;
     TextView tv_items_here;
@@ -135,7 +133,7 @@ public class AuctionAdapter extends RecyclerView.Adapter<AuctionAdapter.AuctionH
                         snackBars.showConnectionRestored();
                         isConnectionRestoredShowed = true;
                     }
-                    if(auctions.size() == 0 && puta == 2){
+                    if (auctions.size() == 0 && puta == 2) {
                         Log.d(DEBUG_TAG, "PUTA 2: TRUE");
                         hideAll();
                         showLoading();
@@ -208,19 +206,18 @@ public class AuctionAdapter extends RecyclerView.Adapter<AuctionAdapter.AuctionH
         final Auction auction = dataSnapshot.getValue(Auction.class);
 
 
-        if(auction.isHidden() == false && auction.isStatus()){
-            if(!auction.getUid().equals(fUser.getUid())){
+        if (auction.isHidden() == false && auction.isStatus()) {
+            if (!auction.getUid().equals(fUser.getUid())) {
                 LatLng user1 = new LatLng(currentUser.getLatitude(), currentUser.getLongitude());
                 LatLng user2 = new LatLng(auction.getLatitude(), auction.getLongitude());
                 Double distance = DistanceHelper.getDistance(user1, user2);
                 if (distance <= DistanceHelper.getRadius()) {
-
                     Log.d(Keys.DEBUG_TAG, String.valueOf(distance));
                     auctions.add(0, auction);
                     notifyItemInserted(position);
                     hideAll();
                 }
-            }else{
+            } else {
                 auctions.add(0, auction);
                 notifyItemInserted(position);
                 hideAll();
@@ -229,7 +226,7 @@ public class AuctionAdapter extends RecyclerView.Adapter<AuctionAdapter.AuctionH
 
     }
 
-    public void getAuctionTimer(){
+    public void getAuctionTimer() {
         CountDownTimer timer = new CountDownTimer(1000, 1000) {
             @Override
             public void onTick(long l) {
@@ -238,10 +235,9 @@ public class AuctionAdapter extends RecyclerView.Adapter<AuctionAdapter.AuctionH
 
             @Override
             public void onFinish() {
-                if(currentUser == null) {
+                if (currentUser == null) {
                     getAuctionTimer();
-                }
-                else{
+                } else {
                     getAuctions();
                     return;
                 }
@@ -250,7 +246,7 @@ public class AuctionAdapter extends RecyclerView.Adapter<AuctionAdapter.AuctionH
         timer.start();
     }
 
-    public void getAuctions(){
+    public void getAuctions() {
         mDatabase.child("auction").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
@@ -299,6 +295,7 @@ public class AuctionAdapter extends RecyclerView.Adapter<AuctionAdapter.AuctionH
         puta = 1;
         initSwipe();
         mDatabase = FirebaseDatabase.getInstance().getReference();
+        auctioners = new ArrayList<>();
 
         mDatabase.child("users").child(fUser.getUid()).addValueEventListener(new ValueEventListener() {
             @Override
@@ -313,7 +310,6 @@ public class AuctionAdapter extends RecyclerView.Adapter<AuctionAdapter.AuctionH
         });
 
 
-
         timer();
         timeOut();
         getAuctionTimer();
@@ -324,218 +320,147 @@ public class AuctionAdapter extends RecyclerView.Adapter<AuctionAdapter.AuctionH
         View view = inflater.inflate(R.layout.model, parent, false);
         AuctionHolder holder = new AuctionHolder(view);
 
-
-        /*if (position > previousPosition) {
-            AnimationUtil.animate(holder, true);
-        } else {
-            AnimationUtil.animate(holder, false);
-        }*/
-
         return holder;
     }
 
     @Override
     public void onBindViewHolder(final AuctionHolder holder, final int position) {
+        try {
+            final Auction auction = auctions.get(position);
 
-        setFadeAnimation(holder.itemView);
+            glide.load(auction.getImage1Uri())
+                    .asBitmap().centerCrop()
+                    .into(holder.itemImage);
+            holder.title.setText(auction.getItemTitle());
 
-        final Query userRef = mDatabase.child("users").child(auctions.get(position).getUid());
-        final Query auctionRef = mDatabase.child("auction").child(auctions.get(position).getAuctionId());
-
-        auctionListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Auction auction = dataSnapshot.getValue(Auction.class);
-
-                if (isAttached) {
+            mDatabase.child("auction").child(auction.getAuctionId()).child("currentBid").addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
                     try{
-                        glide.load(auction.getImage1Uri())
-                                .asBitmap().centerCrop()
-                                .into(holder.itemImage);
+                        int currentBid = dataSnapshot.getValue(Integer.class);
+                        holder.tv_current_bid.setText("Php" + currentBid);
 
-                        holder.title.setText(auction.getItemTitle());
-
-                        String date = CalendarUtils.ConvertMilliSecondsToFormattedDate(auction.getDirectoryName());
-                        holder.datePost.setText(date);
-                        holder.tv_current_bid.setText("Php" + auction.getCurrentBid());
-                    }catch (IndexOutOfBoundsException e){
+                    }catch (NullPointerException e){
                         e.printStackTrace();
                     }
                 }
 
-                userListener = new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        User user = dataSnapshot.getValue(User.class);
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
 
-                        try{
-                            holder.posterName.setText(user.getName());
-
-                            if (isAttached) {
-                                glide.load(user.getImage())
-                                        .asBitmap().centerCrop()
-                                        .into(holder.posterImage);
-                            }
-
-                        }catch(IndexOutOfBoundsException e){
-                            e.printStackTrace();
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                };
-                userRef.addValueEventListener(userListener);
-
-                if(!auction.getUid().equals(fUser.getUid())){
-                    LatLng user1 = new LatLng(currentUser.getLatitude(), currentUser.getLongitude());
-                    LatLng user2 = new LatLng(auction.getLatitude(), auction.getLongitude());
-                    Double distance = DistanceHelper.getDistance(user1, user2);
-
-                    holder.distance.setText(DistanceHelper.formatNumber(distance));
-                    if (distance > DistanceHelper.getRadius()) {
-
-                        try{
-                            for (int i = 0; i < auctions.size(); i++) {
-                                if(auctions.get(position).getAuctionId().equals(auctions.get(i).getAuctionId())){
-                                    auctions.remove(i);
-                                    notifyDataSetChanged();
-                                    userRef.removeEventListener(userListener);
-                                    auctionRef.removeEventListener(auctionListener);
-                                    if(auctions.size() == 0)
-                                        timeOut();
-                                    break;
-                                }
-                            }
-                            return;
-                        }catch(IndexOutOfBoundsException e){
-                            e.printStackTrace();
-                        }
-                    }
                 }
+            });
 
+            String date = CalendarUtils.ConvertMilliSecondsToFormattedDate(auction.getDirectoryName());
+            holder.datePost.setText(date);
+            holder.tv_current_bid.setText("Php" + auction.getCurrentBid());
 
-                if(!auction.isStatus() || auction.isHidden()){
-                    try{
-                        for (int i = 0; i < auctions.size(); i++) {
-                            if(auctions.get(position).getAuctionId().equals(auctions.get(i).getAuctionId())){
-                                auctions.remove(i);
-                                notifyDataSetChanged();
-                                userRef.removeEventListener(userListener);
-                                auctionRef.removeEventListener(auctionListener);
-                                if(auctions.size() == 0)
-                                    timeOut();
-                                break;
-                            }
-                        }
-                        return;
-                    }catch(IndexOutOfBoundsException e){
-                        e.printStackTrace();
-                    }
-                }
-
-
-
+            if (position > previousPosition) {
+                AnimationUtil.animate(holder, true);
+            } else {
+                AnimationUtil.animate(holder, false);
             }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+            mDatabase.child("users").child(auction.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    User user = dataSnapshot.getValue(User.class);
 
-            }
-        };
-        auctionRef.addValueEventListener(auctionListener);
+                    glide.load(user.getImage())
+                            .asBitmap().centerCrop()
+                            .into(holder.posterImage);
+                    holder.posterName.setText(user.getName());
 
+                }
 
-        if (position > previousPosition) {
-            AnimationUtil.animate(holder, true);
-        } else {
-            AnimationUtil.animate(holder, false);
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+
+            previousPosition = position;
+            final int currentPosition = position;
+
+            final Bundle extras = new Bundle();
+            extras.putString(EXTRAS_AUCTION_ID, auction.getAuctionId());
+            extras.putString(EXTRAS_POSTER_ID, auction.getUid());
+
+            holder.itemImage.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (auction.getUid().equals(fUser.getUid())) {
+                        Intent intent = new Intent(context, ViewMyItem.class);
+                        intent.putExtra(EXTRAS_BUNDLE, extras);
+                        context.startActivity(intent);
+                    } else {
+                        Intent intent = new Intent(context, ViewItem.class);
+                        intent.putExtra(EXTRAS_BUNDLE, extras);
+                        context.startActivity(intent);
+                    }
+                }
+            });
+
+            holder.bidNow.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Intent intent = new Intent(context, BidNow.class);
+                    intent.putExtra(EXTRAS_BUNDLE, extras);
+                    context.startActivity(intent);
+                }
+            });
+
+            holder.report.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (!fUser.getUid().equals(auction.getUid())) {
+                        Intent intent = new Intent(context, FileItemComplain.class);
+                        intent.putExtra(EXTRAS_BUNDLE, extras);
+                        context.startActivity(intent);
+                    }
+                }
+            });
+
+            holder.viewLocation.setOnClickListener(new View.OnClickListener() {
+
+                @Override
+                public void onClick(View v) {
+                    if (!fUser.getUid().equals(extras.getString(EXTRAS_POSTER_ID))) {
+                        Intent intent = new Intent(context, ViewItemLocation.class);
+                        intent.putExtra(EXTRAS_BUNDLE, extras);
+                        context.startActivity(intent);
+                    } else {
+                        Intent intent = new Intent(context, MyLocation.class);
+
+                        Bundle args = new Bundle();
+                        args.putString(NAME_KEY, currentUser.getName());
+                        args.putDouble(LAT_KEY, currentUser.getLatitude());
+                        args.putDouble(LONG_KEY, currentUser.getLongitude());
+                        intent.putExtra(BUNDLE_KEY, args);
+
+                        context.startActivity(intent);
+                    }
+                }
+            });
+
+            holder.viewUser.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (!auction.getUid().equals(fUser.getUid())) {
+                        Bundle extra = new Bundle();
+                        extras.putString(EXTRAS_POSTER_ID, auction.getUid());
+                        Intent intent = new Intent(context, ViewUserProfile.class);
+                        intent.putExtra(EXTRAS_BUNDLE, extras);
+                        context.startActivity(intent);
+                    } else {
+                        Intent intent = new Intent(context, MyProfile.class);
+                        context.startActivity(intent);
+                    }
+                }
+            });
+        } catch (NullPointerException e) {
+            e.printStackTrace();
         }
-
-        previousPosition = position;
-        final int currentPosition = position;
-        final Auction auction = auctions.get(position);
-
-        final Bundle extras = new Bundle();
-        extras.putString(EXTRAS_AUCTION_ID, auction.getAuctionId());
-        extras.putString(EXTRAS_POSTER_ID, auction.getUid());
-
-        holder.itemImage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (auction.getUid().equals(fUser.getUid())) {
-                    Intent intent = new Intent(context, ViewMyItem.class);
-                    intent.putExtra(EXTRAS_BUNDLE, extras);
-                    context.startActivity(intent);
-                } else {
-                    Intent intent = new Intent(context, ViewItem.class);
-                    intent.putExtra(EXTRAS_BUNDLE, extras);
-                    context.startActivity(intent);
-                }
-            }
-        });
-
-        holder.bidNow.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                Intent intent = new Intent(context, BidNow.class);
-                intent.putExtra(EXTRAS_BUNDLE, extras);
-                context.startActivity(intent);
-            }
-        });
-
-        holder.report.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!fUser.getUid().equals(auction.getUid())) {
-                    Intent intent = new Intent(context, FileItemComplain.class);
-                    intent.putExtra(EXTRAS_BUNDLE, extras);
-                    context.startActivity(intent);
-                }
-            }
-        });
-
-        holder.viewLocation.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                if (!fUser.getUid().equals(extras.getString(EXTRAS_POSTER_ID))) {
-                    Intent intent = new Intent(context, ViewItemLocation.class);
-                    intent.putExtra(EXTRAS_BUNDLE, extras);
-                    context.startActivity(intent);
-                } else {
-                    Intent intent = new Intent(context, MyLocation.class);
-
-                    Bundle args = new Bundle();
-                    args.putString(NAME_KEY, currentUser.getName());
-                    args.putDouble(LAT_KEY, currentUser.getLatitude());
-                    args.putDouble(LONG_KEY, currentUser.getLongitude());
-                    intent.putExtra(BUNDLE_KEY, args);
-
-                    context.startActivity(intent);
-                }
-            }
-        });
-
-        holder.viewUser.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (!auction.getUid().equals(fUser.getUid())) {
-                    Bundle extra = new Bundle();
-                    extras.putString(EXTRAS_POSTER_ID, auction.getUid());
-                    Intent intent = new Intent(context, ViewUserProfile.class);
-                    intent.putExtra(EXTRAS_BUNDLE, extras);
-                    context.startActivity(intent);
-                } else {
-                    Intent intent = new Intent(context, MyProfile.class);
-                    context.startActivity(intent);
-                }
-            }
-        });
-
-
     }
 
     @Override
@@ -548,7 +473,6 @@ public class AuctionAdapter extends RecyclerView.Adapter<AuctionAdapter.AuctionH
         ImageView posterImage;
         ImageView itemImage;
         TextView title;
-        TextView distance;
         TextView datePost;
         ImageView bidNow;
         ImageView viewLocation;
@@ -564,11 +488,10 @@ public class AuctionAdapter extends RecyclerView.Adapter<AuctionAdapter.AuctionH
             posterImage = (ImageView) itemView.findViewById(R.id.poster_image);
             itemImage = (ImageView) itemView.findViewById(R.id.item_image_view1);
             title = (TextView) itemView.findViewById(R.id.tv_item_title);
-            distance = (TextView) itemView.findViewById(R.id.tv_distance);
             datePost = (TextView) itemView.findViewById(R.id.tv_date_post);
             bidNow = (ImageView) itemView.findViewById(R.id.bid_image);
             viewLocation = (ImageView) itemView.findViewById(R.id.iv_item_location);
-            tv_current_bid = (TextView)itemView.findViewById(R.id.tv_starting_bid);
+            tv_current_bid = (TextView) itemView.findViewById(R.id.tv_starting_bid);
             viewUser = itemView.findViewById(R.id.cont_view_profile);
         }
     }

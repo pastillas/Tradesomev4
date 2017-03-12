@@ -7,8 +7,12 @@ import com.tradesomev4.tradesomev4.m_UI.SearchUserAdapter;
 
 import java.util.ArrayList;
 
+
 /**
- * Created by Pastillas-Boy on 7/20/2016.
+ * Created by Charles Torrente, Jorge Benigno Pante, Joshua Alarcon on 7/22/2016.
+ * File Name: SearchUserFilter.java
+ * File Path: Tradesomev4\app\src\main\java\com\tradesomev4\tradesomev4\Filters\SearchUserFilter.java
+ * Description: Search filter for Users.
  */
 public class SearchUserFilter extends Filter {
     SearchUserAdapter adapter;

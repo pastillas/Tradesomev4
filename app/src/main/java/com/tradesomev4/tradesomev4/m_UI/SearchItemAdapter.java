@@ -23,7 +23,6 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.pnikosis.materialishprogress.ProgressWheel;
 import com.tradesomev4.tradesomev4.BidNow;
@@ -103,7 +102,7 @@ public class SearchItemAdapter extends RecyclerView.Adapter<SearchItemAdapter.Au
 
 
     public void timer(){
-        final CountDownTimer c = new CountDownTimer(500, 500) {
+        final CountDownTimer c = new CountDownTimer(1000, 1000) {
 
             @Override
             public void onTick(long l) {
@@ -121,7 +120,7 @@ public class SearchItemAdapter extends RecyclerView.Adapter<SearchItemAdapter.Au
                         puta++;
 
                     if(!isConnectionDisabledShowed){
-                        snackBars.showConnectionDisabledDialog();
+                        //snackBars.showConnectionDisabledDialog();
                         isConnectionDisabledShowed = true;
                     }
 
@@ -134,7 +133,7 @@ public class SearchItemAdapter extends RecyclerView.Adapter<SearchItemAdapter.Au
                     isConnectionDisabledShowed = false;
 
                     if(puta != 1 && !isConnectionRestoredShowed){
-                        snackBars.showConnectionRestored();
+                        //snackBars.showConnectionRestored();
                         isConnectionRestoredShowed = true;
                     }
 
@@ -145,11 +144,12 @@ public class SearchItemAdapter extends RecyclerView.Adapter<SearchItemAdapter.Au
                         if(!isSearching && auctions.size() > 0){
                             hideAll();
                         }else{
-                            if(isSearching)
-                                showLoading();
+                            if(!isSearching && auctions.size() == 0){
+                                tv_items_here.setText("Items appear here.");
+                                showItemsHere();
+                            }
                         }
                     }
-
 
                     if(auctions.size() == 0 && puta == 2){
                         Log.d(DEBUG_TAG, "PUTA 2: TRUE");
@@ -161,9 +161,6 @@ public class SearchItemAdapter extends RecyclerView.Adapter<SearchItemAdapter.Au
                     }
                 }
 
-                if(auctions.size() > 0){
-                    //hideAll();
-                }
 
                 timer();
             }
@@ -361,98 +358,24 @@ public class SearchItemAdapter extends RecyclerView.Adapter<SearchItemAdapter.Au
 
     @Override
     public void onBindViewHolder(final AuctionHolder holder, final int position) {
-        AnimationUtil.setFadeAnimation(holder.itemView);
+        hideAll();
+        final Auction auction = auctions.get(position);
 
-        final Query userRef = mDatabase.child("users").child(auctions.get(position).getUid());
-        final Query auctionRef = mDatabase.child("auction").child(auctions.get(position).getAuctionId());
+        glide.load(auction.getImage1Uri())
+                .asBitmap().centerCrop()
+                .into(holder.itemImage);
+        holder.title.setText(auction.getItemTitle());
 
-        auctionListener = new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                Auction auction = dataSnapshot.getValue(Auction.class);
+        String date = CalendarUtils.ConvertMilliSecondsToFormattedDate(auction.getDirectoryName());
+        holder.date.setText(date);
 
-                if (isAttached) {
-                    try{
-                        glide.load(auction.getImage1Uri())
-                                .asBitmap().centerCrop()
-                                .into(holder.itemImage);
-
-                        holder.title.setText(auction.getItemTitle());
-
-                        String date = CalendarUtils.ConvertMilliSecondsToFormattedDate(auction.getDirectoryName());
-                        holder.date.setText(date);
-                    }catch (IndexOutOfBoundsException e){
-                        e.printStackTrace();
-                    }
-                }
-
-                if(!auction.getUid().equals(fUser.getUid())){
-                    LatLng user1 = new LatLng(currentUser.getLatitude(), currentUser.getLongitude());
-                    LatLng user2 = new LatLng(auction.getLatitude(), auction.getLongitude());
-                    Double distance = DistanceHelper.getDistance(user1, user2);
-
-                    holder.distance.setText( "Distance: " + DistanceHelper.formatNumber(distance));
-                    if (distance > DistanceHelper.getRadius()) {
-
-                        try{
-                            for (int i = 0; i < auctions.size(); i++) {
-                                if(auctions.get(position).getAuctionId().equals(auctions.get(i).getAuctionId())){
-                                    auctions.remove(i);
-                                    notifyDataSetChanged();
-                                    userRef.removeEventListener(userListener);
-                                    auctionRef.removeEventListener(auctionListener);
-                                    if(auctions.size() == 0)
-                                        timeOut();
-                                    break;
-                                }
-                            }
-                            return;
-                        }catch(IndexOutOfBoundsException e){
-                            e.printStackTrace();
-                        }
-                    }
-                }
-
-
-                if(!auction.isStatus() || auction.isHidden()){
-                    try{
-                        for (int i = 0; i < auctions.size(); i++) {
-                            if(auctions.get(position).getAuctionId().equals(auctions.get(i).getAuctionId())){
-                                auctions.remove(i);
-                                notifyDataSetChanged();
-                                userRef.removeEventListener(userListener);
-                                auctionRef.removeEventListener(auctionListener);
-                                if(auctions.size() == 0)
-                                    timeOut();
-                                break;
-                            }
-                        }
-                        return;
-                    }catch(IndexOutOfBoundsException e){
-                        e.printStackTrace();
-                    }
-                }
-
-
-
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        };
-        auctionRef.addValueEventListener(auctionListener);
+        holder.distance.setText("Php " + auction.getCurrentBid());
 
         if (position > previousPosition) {
             AnimationUtil.animate(holder, true);
         } else {
             AnimationUtil.animate(holder, false);
         }
-
-        previousPosition = position;
-        final int currentPosition = position;
-        final Auction auction = auctions.get(position);
 
         final Bundle extras = new Bundle();
         extras.putString(EXTRAS_AUCTION_ID, auction.getAuctionId());

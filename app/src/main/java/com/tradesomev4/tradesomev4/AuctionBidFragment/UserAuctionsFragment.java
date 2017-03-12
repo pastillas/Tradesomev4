@@ -16,7 +16,10 @@ import com.tradesomev4.tradesomev4.R;
 import com.tradesomev4.tradesomev4.m_UI.UserAuctionsAdapter;
 
 /**
- * Created by Pastillas-Boy on 7/24/2016.
+ * Created by Jorge Benigno Pante, Joshua Alarcon, Charles Torrente on 7/24/2016.
+ * File Name: UserAuctionsFragment.java
+ * File Path: Tradesomev4\app\src\main\java\com\tradesomev4\tradesomev4\AuctionBidFragment\UserAuctionsFragment.java
+ * Description: fetch and display all the user's current auctioned items.
  */
 public class UserAuctionsFragment extends Fragment {
 

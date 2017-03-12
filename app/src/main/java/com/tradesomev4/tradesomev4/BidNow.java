@@ -20,6 +20,7 @@ import android.widget.RatingBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.bumptech.glide.Glide;
 import com.google.android.gms.maps.model.LatLng;
@@ -40,6 +41,8 @@ import com.rengwuxian.materialedittext.MaterialEditText;
 import com.tradesomev4.tradesomev4.m_Helpers.CalendarUtils;
 import com.tradesomev4.tradesomev4.m_Helpers.DateHelper;
 import com.tradesomev4.tradesomev4.m_Helpers.DistanceHelper;
+import com.tradesomev4.tradesomev4.m_Helpers.IsBlockedListener;
+import com.tradesomev4.tradesomev4.m_Helpers.Keys;
 import com.tradesomev4.tradesomev4.m_Helpers.VibrateService;
 import com.tradesomev4.tradesomev4.m_Model.Auction;
 import com.tradesomev4.tradesomev4.m_Model.Bid;
@@ -90,6 +93,14 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
     ProgressWheel progress_wheel;
     View content_main;
     ArrayList<Participant> participants;
+    TextView tv_distance;
+
+    @Override
+    protected void onNewIntent(Intent intent) {
+        extras = intent.getBundleExtra(EXTRAS_BUNDLE);
+
+        super.onNewIntent(intent);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -97,11 +108,17 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
         setContentView(R.layout.activity_bid_now);
 
         extras = getIntent().getBundleExtra(EXTRAS_BUNDLE);
-
+        if (extras == null) {
+            String auctionId = (String) getIntent().getStringExtra(Keys.EXTRAS_AUCTION_ID);
+            extras.putString(EXTRAS_AUCTION_ID, auctionId);
+            String posterId = (String) getIntent().getStringExtra(Keys.USER_ID_KEY);
+            extras.putString(EXTRAS_POSTER_ID, posterId);
+        }
 
         initViewsDb();
         initData();
         getParticipants();
+        new IsBlockedListener(this, false, fUser.getUid());
     }
 
     public void getParticipants() {
@@ -163,6 +180,7 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
         rb_rate_user = (RatingBar) findViewById(R.id.rb_rate_user);
         rb_auctioner_rate = (RatingBar) findViewById(R.id.rb_auctioner_rate);
         container_bid = findViewById(R.id.container_bid);
+        tv_distance = (TextView) findViewById(R.id.distance);
 
         container_rate.setVisibility(View.GONE);
         tv_rate_name.setVisibility(View.GONE);
@@ -178,31 +196,85 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
         adapter = new BidAdapter(this, extras.getString(EXTRAS_AUCTION_ID), extras.getString(EXTRAS_POSTER_ID), isAttache, recyclerView, Glide.with(this), tv_items_here, tv_internet_connection, progress_wheel, content_main);
         recyclerView.setAdapter(adapter);
         LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        linearLayoutManager.setStackFromEnd(true);
+        //linearLayoutManager.setStackFromEnd(true);
         recyclerView.setLayoutManager(linearLayoutManager);
     }
 
+    public void itemNotExists(){
+        new MaterialDialog.Builder(this)
+                .title("Sorry")
+                .content("This item no longer exists")
+                .cancelable(false)
+                .canceledOnTouchOutside(false)
+                .positiveText("BACK")
+                .onAny(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        if(which.toString().equals("POSITIVE")){
+                            Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                            startActivity(intent);
+                        }
+                    }
+                }).show();
+    }
     public void initData() {
         rates = new ArrayList<Rate>();
         total = 0;
         participants = new ArrayList<Participant>();
         adapter.participants = participants;
 
-        mDatabase.child("users").child(fUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
+        final String posterId = extras.getString(EXTRAS_POSTER_ID);
+
+        if (posterId.equals(fUser.getUid())) {
+            tv_bid_amount.setHint("Type here");
+            tv_bid_amount.setInputType(InputType.TYPE_CLASS_TEXT);
+            tv_bid_amount.setFloatingLabelText("Type here");
+            tv_bid_amount.setMaxCharacters(30);
+        } else {
+            tv_bid_amount.setHint("Place bid: Php");
+            tv_bid_amount.setFloatingLabelText("Place bid: Php");
+            tv_bid_amount.setInputType(InputType.TYPE_CLASS_NUMBER);
+            tv_bid_amount.setMaxCharacters(9);
+        }
+
+        mDatabase.child("users").child(fUser.getUid()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                currentUser = dataSnapshot.getValue(User.class);
+                try {
+                    currentUser = dataSnapshot.getValue(User.class);
 
-                if (extras.getString(EXTRAS_POSTER_ID).equals(currentUser.getId())) {
-                    tv_bid_amount.setHint("Type here");
-                    tv_bid_amount.setInputType(InputType.TYPE_CLASS_TEXT);
-                    tv_bid_amount.setFloatingLabelText("Type here");
-                    tv_bid_amount.setMaxCharacters(30);
-                } else {
-                    tv_bid_amount.setHint("Place bid: Php");
-                    tv_bid_amount.setFloatingLabelText("Place bid: Php");
-                    tv_bid_amount.setInputType(InputType.TYPE_CLASS_NUMBER);
-                    tv_bid_amount.setMaxCharacters(9);
+                    mDatabase.child("users").child(posterId).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            try {
+                                User poster = dataSnapshot.getValue(User.class);
+                                tv_poster_name.setText(user.getName());
+                                Glide.with(getApplicationContext())
+                                        .load(user.getImage())
+                                        .asBitmap().centerCrop()
+                                        .into(iv_poster_image);
+
+                                if (fUser.getUid().equals(posterId)) {
+                                    distance = 0;
+                                } else {
+                                    LatLng user1 = new LatLng(currentUser.getLatitude(), currentUser.getLongitude());
+                                    LatLng user2 = new LatLng(poster.getLatitude(), poster.getLongitude());
+                                    distance = DistanceHelper.getDistance(user1, user2);
+
+                                    tv_distance.setText("Distance: " + DistanceHelper.formatNumber(distance));
+                                }
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+                } catch (NullPointerException e) {
+                    e.printStackTrace();
                 }
             }
 
@@ -212,28 +284,19 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
             }
         });
 
+
         Log.d(DEBUG_TAG, "EXTRAS POSTER ID: " + extras.getString(EXTRAS_POSTER_ID));
 
-        final String posterId = extras.getString(EXTRAS_POSTER_ID);
 
         mDatabase.child("users").child(posterId).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                user = dataSnapshot.getValue(User.class);
-
-                tv_poster_name.setText(user.getName());
-                Glide.with(getApplicationContext())
-                        .load(user.getImage())
-                        .asBitmap().centerCrop()
-                        .into(iv_poster_image);
-
-                if (fUser.getUid().equals(posterId)) {
-                    distance = 0;
-                } else {
-                    LatLng user1 = new LatLng(currentUser.getLatitude(), currentUser.getLongitude());
-                    LatLng user2 = new LatLng(user.getLatitude(), user.getLongitude());
-                    distance = DistanceHelper.getDistance(user1, user2);
+                try {
+                    user = dataSnapshot.getValue(User.class);
+                } catch (NullPointerException e) {
+                    e.printStackTrace();
                 }
+
             }
 
             @Override
@@ -246,53 +309,66 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
         mDatabase.child("auction").child(extras.getString(EXTRAS_AUCTION_ID)).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                auction = dataSnapshot.getValue(Auction.class);
+                try {
+                    auction = dataSnapshot.getValue(Auction.class);
 
-                Glide.with(getApplicationContext())
-                        .load(auction.getImage1Uri())
-                        .asBitmap().centerCrop()
-                        .into(iv_item_image);
-
-                if (auction.getItemTitle().length() > 50) {
-                    String tmp = auction.getItemTitle().subSequence(0, 25) + "...";
-                    tv_title.setText(tmp);
-                } else
-                    tv_title.setText(auction.getItemTitle());
-
-                String currentBid = "Current bid: Php" + auction.getCurrentBid();
-                tv_current_bid.setText(currentBid);
-
-                String date = CalendarUtils.ConvertMilliSecondsToFormattedDate(auction.getDirectoryName());
-                tv_date_posted.setText(date);
-
-                if (!auction.isStatus()) {
-                    tv_bid_amount.setEnabled(false);
-                    bt_bid.setEnabled(false);
-                    bt_bid.setClickable(false);
-
-                    if (!fUser.getUid().equals(auction.getUid())) {
-                        tv_bid_amount.setVisibility(View.GONE);
-                        bt_bid.setVisibility(View.GONE);
-                        container_bid.setVisibility(View.GONE);
-
-                        container_rate.setVisibility(View.VISIBLE);
-                        tv_rate_name.setVisibility(View.VISIBLE);
-                        tv_rate_name.setText("Rate " + user.getName() + ": ");
-                        rb_rate_user.setVisibility(View.VISIBLE);
-
-                        rb_rate_user.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
-                            @Override
-                            public void onRatingChanged(RatingBar ratingBar, float v, boolean b) {
-                                Rate rate = new Rate(fUser.getUid(), ratingBar.getRating());
-                                mDatabase.child("users").child(auction.getUid()).child("rating").child(fUser.getUid()).setValue(rate);
-
-                                if (!fromDb)
-                                    Toast.makeText(getApplicationContext(), "Thank you!", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-
+                    if(auction == null){
+                        itemNotExists();
                     }
 
+                    Glide.with(getApplicationContext())
+                            .load(auction.getImage1Uri())
+                            .asBitmap().centerCrop()
+                            .into(iv_item_image);
+
+                    if (auction.getItemTitle().length() > 50) {
+                        String tmp = auction.getItemTitle().subSequence(0, 25) + "...";
+                        tv_title.setText(tmp);
+                    } else
+                        tv_title.setText(auction.getItemTitle());
+
+                    String currentBid = "Minimum Bid: Php" + auction.getCurrentBid();
+                    tv_current_bid.setText(currentBid);
+
+                    String date = CalendarUtils.ConvertMilliSecondsToFormattedDate(auction.getDirectoryName());
+                    tv_date_posted.setText(date);
+
+                    if (!auction.isStatus()) {
+                        tv_bid_amount.setEnabled(false);
+                        bt_bid.setEnabled(false);
+                        bt_bid.setClickable(false);
+
+                        try {
+                            if (!fUser.getUid().equals(auction.getUid())) {
+                                tv_bid_amount.setVisibility(View.GONE);
+                                bt_bid.setVisibility(View.GONE);
+                                container_bid.setVisibility(View.GONE);
+
+                                container_rate.setVisibility(View.VISIBLE);
+                                tv_rate_name.setVisibility(View.VISIBLE);
+                                tv_rate_name.setText("Rate " + user.getName() + ": ");
+                                rb_rate_user.setVisibility(View.VISIBLE);
+
+                                rb_rate_user.setOnRatingBarChangeListener(new RatingBar.OnRatingBarChangeListener() {
+                                    @Override
+                                    public void onRatingChanged(RatingBar ratingBar, float v, boolean b) {
+                                        Rate rate = new Rate(fUser.getUid(), ratingBar.getRating());
+                                        mDatabase.child("users").child(auction.getUid()).child("rating").child(fUser.getUid()).setValue(rate);
+
+                                        if (!fromDb)
+                                            Toast.makeText(getApplicationContext(), "Thank you!", Toast.LENGTH_SHORT).show();
+                                    }
+                                });
+
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+
+
+                    }
+                } catch (NullPointerException e) {
+                    e.printStackTrace();
                 }
             }
 
@@ -306,11 +382,14 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
         mDatabase.child("users").child(posterId).child("rating").addChildEventListener(new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String s) {
-                Rate rate = dataSnapshot.getValue(Rate.class);
-                rates.add(rate);
-                total += rate.getRate();
-                rb_auctioner_rate.setRating(total / rates.size());
-
+                try {
+                    Rate rate = dataSnapshot.getValue(Rate.class);
+                    rates.add(rate);
+                    total += rate.getRate();
+                    rb_auctioner_rate.setRating(total / rates.size());
+                } catch (NullPointerException e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -338,11 +417,15 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
             mDatabase.child("users").child(posterId).child("rating").child(fUser.getUid()).addValueEventListener(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
-                    if (dataSnapshot.getChildrenCount() != 0) {
-                        Rate rate = dataSnapshot.getValue(Rate.class);
-                        rb_rate_user.setRating(rate.getRate());
+                    try {
+                        if (dataSnapshot.getChildrenCount() != 0) {
+                            Rate rate = dataSnapshot.getValue(Rate.class);
+                            rb_rate_user.setRating(rate.getRate());
 
-                        fromDb = true;
+                            fromDb = true;
+                        }
+                    } catch (NullPointerException e) {
+                        e.printStackTrace();
                     }
                 }
 
@@ -362,24 +445,27 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-
-        switch (item.getItemId()) {
-            case R.id.auction_info:
-                if (extras.getString(EXTRAS_POSTER_ID).equals(fUser.getUid())) {
-                    Intent intent = new Intent(getApplicationContext(), ViewMyItem.class);
-                    intent.putExtra(EXTRAS_BUNDLE, extras);
+        try {
+            switch (item.getItemId()) {
+                case R.id.auction_info:
+                    if (extras.getString(EXTRAS_POSTER_ID).equals(fUser.getUid())) {
+                        Intent intent = new Intent(getApplicationContext(), ViewMyItem.class);
+                        intent.putExtra(EXTRAS_BUNDLE, extras);
+                        startActivity(intent);
+                    } else {
+                        Intent intent = new Intent(getApplicationContext(), ViewItem.class);
+                        intent.putExtra(EXTRAS_BUNDLE, extras);
+                        startActivity(intent);
+                    }
+                    break;
+                case android.R.id.home:
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                     startActivity(intent);
-                } else {
-                    Intent intent = new Intent(getApplicationContext(), ViewItem.class);
-                    intent.putExtra(EXTRAS_BUNDLE, extras);
-                    startActivity(intent);
-                }
-                break;
-            case  android.R.id.home:
-                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                startActivity(intent);
-                break;
+                    break;
 
+            }
+        } catch (NullPointerException e) {
+            e.printStackTrace();
         }
         return super.onOptionsItemSelected(item);
     }
@@ -409,11 +495,19 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
 
     public void addNotification(Notif notif) {
         for (int i = 0; i < participants.size(); i++) {
-            Participant participant = participants.get(i);
+            try {
+                Participant participant = participants.get(i);
 
-            if (!participant.getId().equals(fUser.getUid())) {
-                notif.setKey(auction.getAuctionId());
-                mDatabase.child("users").child(participant.getId()).child("notifs").child(auction.getAuctionId()).setValue(notif);
+                if (!participant.getId().equals(fUser.getUid())) {
+                    notif.setKey(auction.getAuctionId());
+                    mDatabase.child("users").child(participant.getId()).child("notifs").child(auction.getAuctionId()).setValue(notif);
+                    String key = mDatabase.child("users").child(participant.getId()).child("notifsBackground").push().getKey();
+                    notif.setKey(key);
+                    mDatabase.child("users").child(participant.getId()).child("notifsBackground").child(notif.getKey()).setValue(notif);
+
+                }
+            } catch (NullPointerException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -425,6 +519,8 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
         notif.setBidderId(fUser.getUid());
         notif.setRead(false);
         notif.setDate(DateHelper.getCurrentDateInMil());
+        notif.setReceived(false);
+        notif.setPosterId(extras.getString(EXTRAS_POSTER_ID));
 
         return notif;
     }
@@ -461,7 +557,7 @@ public class BidNow extends AppCompatActivity implements View.OnClickListener {
                 Map<String, Object> bidValues = bid.toMap();
                 Map<String, Object> childUpdate = new HashMap<>();
                 childUpdate.put("/auction/" + extras.getString(EXTRAS_AUCTION_ID) + "/bid/" + key, bidValues);
-                childUpdate.put("/bidHistory/" + fUser.getUid() + "/" + key, bidValues);
+                childUpdate.put("/bidHistory/" + fUser.getUid() + "/" + auction.getAuctionId(), bidValues);
                 mDatabase.updateChildren(childUpdate).addOnFailureListener(new OnFailureListener() {
                     @Override
                     public void onFailure(@NonNull Exception e) {

@@ -18,8 +18,12 @@ import com.tradesomev4.tradesomev4.AuctionYourStuff;
 import com.tradesomev4.tradesomev4.R;
 import com.tradesomev4.tradesomev4.m_UI.MyAuctionsAdapter;
 
+
 /**
- * Created by Pastillas-Boy on 7/24/2016.
+ * Created by Jorge Benigno Pante, Joshua Alarcon, Charles Torrente on 7/24/2016.
+ * File Name: MyAuctionsFragment.java
+ * File Path: Tradesomev4\app\src\main\java\com\tradesomev4\tradesomev4\AuctionBidFragment\MyAuctionsFragment.java
+ * Description: fetch and display all my current auctioned items.
  */
 public class MyAuctionsFragment extends Fragment implements View.OnClickListener{
     private RecyclerView rv;

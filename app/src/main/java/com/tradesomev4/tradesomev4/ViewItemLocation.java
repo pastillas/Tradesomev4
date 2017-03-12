@@ -30,11 +30,19 @@ import com.google.firebase.database.ValueEventListener;
 import com.tradesomev4.tradesomev4.direction_helpers.DirectionFinder;
 import com.tradesomev4.tradesomev4.direction_helpers.DirectionFinderListener;
 import com.tradesomev4.tradesomev4.direction_helpers.Route;
+import com.tradesomev4.tradesomev4.m_Helpers.IsBlockedListener;
 import com.tradesomev4.tradesomev4.m_Model.User;
 
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.List;
+
+/**
+ * Created by Jorge Benigno Pante, Charles Torrente, Joshua Alarcon on 7/17/2016.
+ * File name: ViewItemLocation.java
+ * File Path: Tradesomev4\app\src\main\java\com\tradesomev4\tradesomev4\ViewItemLocation.java
+ * Description: View item location in the map.
+ */
 
 public class ViewItemLocation extends FragmentActivity implements OnMapReadyCallback, DirectionFinderListener{
 
@@ -48,6 +56,7 @@ public class ViewItemLocation extends FragmentActivity implements OnMapReadyCall
     private MaterialDialog progressDialog;
     private String origin;
     private String destination;
+    private Bundle extras;
 
 
     @Override
@@ -63,8 +72,8 @@ public class ViewItemLocation extends FragmentActivity implements OnMapReadyCall
     }
 
     public void sendRequest(){
-        final Bundle extras = getIntent().getBundleExtra(EXTRAS_BUNDLE);
-
+        extras = getIntent().getBundleExtra(EXTRAS_BUNDLE);
+        try{
         final DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
         FirebaseUser fUser = FirebaseAuth.getInstance().getCurrentUser();
         mDatabase.child("users").child(fUser.getUid()).addListenerForSingleValueEvent(new ValueEventListener() {
@@ -99,6 +108,9 @@ public class ViewItemLocation extends FragmentActivity implements OnMapReadyCall
 
             }
         });
+        }catch (NullPointerException e){
+            e.printStackTrace();
+        }
 
 
 
@@ -176,6 +188,8 @@ public class ViewItemLocation extends FragmentActivity implements OnMapReadyCall
     @Override
     public void onDirectionFinderSuccess(List<Route> routes) {
         progressDialog.dismiss();
+
+        new IsBlockedListener(getApplicationContext(), false, extras.getString(EXTRAS_POSTER_ID));
         polylinePaths = new ArrayList<>();
         originMarkers = new ArrayList<>();
         destinationMarkers = new ArrayList<>();

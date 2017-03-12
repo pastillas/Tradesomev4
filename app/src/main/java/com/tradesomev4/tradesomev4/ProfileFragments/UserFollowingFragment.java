@@ -13,12 +13,14 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import com.bumptech.glide.Glide;
-import com.pnikosis.materialishprogress.ProgressWheel;
 import com.tradesomev4.tradesomev4.R;
 import com.tradesomev4.tradesomev4.m_UI.UserFollowingAdapter;
 
 /**
- * Created by Pastillas-Boy on 7/22/2016.
+ * Created by Jorge Benigno Pante, Charles Torrente, Joshua Alarcon on 7/17/2016.
+ * File name: UserFollowingFragment.java
+ * File Path: Tradesomev4\app\src\main\java\com\tradesomev4\tradesomev4\ProfileFragments\UserFollowingFragment.java
+ * Description: View other user's following.
  */
 public class UserFollowingFragment extends Fragment {
     private static final String EXTRAS_POSTER_ID = "POSTER_ID";

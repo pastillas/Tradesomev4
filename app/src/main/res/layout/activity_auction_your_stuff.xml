@@ -111,7 +111,8 @@
                     android:textCursorDrawable="@drawable/text_cursor_cyan"
                     app:met_floatingLabel="highlight"
                     app:met_maxCharacters="100"
-                    app:met_primaryColor="?colorAccent" />
+                    app:met_primaryColor="?colorAccent"
+                    android:inputType="textCapSentences"/>
 
                 <com.rengwuxian.materialedittext.MaterialEditText
                     android:id="@+id/startingBid"
@@ -133,7 +134,8 @@
                     app:met_floatingLabel="highlight"
                     app:met_maxCharacters="150"
                     app:met_primaryColor="?colorAccent"
-                    android:singleLine="false" />
+                    android:singleLine="false"
+                    android:inputType="textCapSentences"/>
 
 
                 <LinearLayout

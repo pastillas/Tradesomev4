@@ -15,8 +15,12 @@ import com.pnikosis.materialishprogress.ProgressWheel;
 import com.tradesomev4.tradesomev4.R;
 import com.tradesomev4.tradesomev4.m_UI.UserBidsAdapter;
 
+
 /**
- * Created by Pastillas-Boy on 7/24/2016.
+ * Created by Jorge Benigno Pante, Joshua Alarcon, Charles Torrente on 7/24/2016.
+ * File Name: UserBidsFragment.java
+ * File Path: H:\SP\Tradesomev4\app\src\main\java\com\tradesomev4\tradesomev4\AuctionBidFragment\UserBidsFragment.java
+ * Description: fetch and display all the user's current bade items.
  */
 public class UserBidsFragment extends Fragment {
 

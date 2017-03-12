@@ -62,19 +62,18 @@ public class MyBidsAdapter extends RecyclerView.Adapter<MyBidsAdapter.MyBidsHold
     int puta;
 
 
-
-    public void timeOut(){
+    public void timeOut() {
         timeOuttimer = new CountDownTimer(30000, 1000) {
             @Override
             public void onTick(long l) {
-                if(bidsHistory.size() > 0){
+                if (bidsHistory.size() > 0) {
                     hideAll();
                 }
             }
 
             @Override
             public void onFinish() {
-                if(isConnected && bidsHistory.size() == 0)
+                if (isConnected && bidsHistory.size() == 0)
                     showItemsHere();
             }
         };
@@ -83,7 +82,7 @@ public class MyBidsAdapter extends RecyclerView.Adapter<MyBidsAdapter.MyBidsHold
     }
 
 
-    public void timer(){
+    public void timer() {
         final CountDownTimer c = new CountDownTimer(1000, 1000) {
 
             @Override
@@ -94,19 +93,19 @@ public class MyBidsAdapter extends RecyclerView.Adapter<MyBidsAdapter.MyBidsHold
             public void onFinish() {
                 Connectivity connectivity = new Connectivity(context.getApplicationContext());
 
-                if(!connectivity.isConnected()) {
+                if (!connectivity.isConnected()) {
                     isConnectionRestoredShowed = false;
                     isConnected = false;
 
-                    if(puta == 1)
+                    if (puta == 1)
                         puta++;
 
-                    if(!isConnectionDisabledShowed){
+                    if (!isConnectionDisabledShowed) {
                         //nackBars.showConnectionDisabledDialog();
                         isConnectionDisabledShowed = true;
                     }
 
-                    if(timeOuttimer != null)
+                    if (timeOuttimer != null)
                         timeOuttimer.cancel();
 
                     showConnectionError();
@@ -114,11 +113,11 @@ public class MyBidsAdapter extends RecyclerView.Adapter<MyBidsAdapter.MyBidsHold
                     isConnected = true;
                     isConnectionDisabledShowed = false;
 
-                    if(puta != 1 && !isConnectionRestoredShowed){
+                    if (puta != 1 && !isConnectionRestoredShowed) {
                         //snackBars.showConnectionRestored();
                         isConnectionRestoredShowed = true;
                     }
-                    if(bidsHistory.size() == 0 && puta == 2){
+                    if (bidsHistory.size() == 0 && puta == 2) {
                         Log.d(DEBUG_TAG, "PUTA 2: TRUE");
                         hideAll();
                         showLoading();
@@ -127,7 +126,7 @@ public class MyBidsAdapter extends RecyclerView.Adapter<MyBidsAdapter.MyBidsHold
                     }
                 }
 
-                if(bidsHistory.size() > 0){
+                if (bidsHistory.size() > 0) {
                     //hideAll();
                 }
 
@@ -136,58 +135,58 @@ public class MyBidsAdapter extends RecyclerView.Adapter<MyBidsAdapter.MyBidsHold
         }.start();
     }
 
-    public void hideAll(){
-        if(progress_wheel.getVisibility() == View.VISIBLE)
+    public void hideAll() {
+        if (progress_wheel.getVisibility() == View.VISIBLE)
             progress_wheel.setVisibility(View.GONE);
 
-        if(tv_items_here.getVisibility() == View.VISIBLE)
+        if (tv_items_here.getVisibility() == View.VISIBLE)
             tv_items_here.setVisibility(View.GONE);
 
-        if(tv_internet_connection.getVisibility() == View.VISIBLE)
+        if (tv_internet_connection.getVisibility() == View.VISIBLE)
             tv_internet_connection.setVisibility(View.GONE);
     }
 
-    public void showItemsHere(){
-        if(progress_wheel.getVisibility() == View.VISIBLE)
+    public void showItemsHere() {
+        if (progress_wheel.getVisibility() == View.VISIBLE)
             progress_wheel.setVisibility(View.GONE);
 
-        if(tv_internet_connection.getVisibility() == View.VISIBLE)
+        if (tv_internet_connection.getVisibility() == View.VISIBLE)
             tv_internet_connection.setVisibility(View.GONE);
 
-        if(tv_items_here.getVisibility() == View.GONE)
+        if (tv_items_here.getVisibility() == View.GONE)
             tv_items_here.setVisibility(View.VISIBLE);
     }
 
-    public void showLoading(){
-        if(progress_wheel.getVisibility() == View.GONE)
+    public void showLoading() {
+        if (progress_wheel.getVisibility() == View.GONE)
             progress_wheel.setVisibility(View.VISIBLE);
 
-        if(tv_internet_connection.getVisibility() == View.VISIBLE)
+        if (tv_internet_connection.getVisibility() == View.VISIBLE)
             tv_internet_connection.setVisibility(View.GONE);
 
-        if(tv_items_here.getVisibility() == View.VISIBLE)
+        if (tv_items_here.getVisibility() == View.VISIBLE)
             tv_items_here.setVisibility(View.GONE);
     }
 
-    public void showConnectionError(){
-        if(progress_wheel.getVisibility() == View.VISIBLE)
+    public void showConnectionError() {
+        if (progress_wheel.getVisibility() == View.VISIBLE)
             progress_wheel.setVisibility(View.GONE);
 
-        if(tv_items_here.getVisibility() == View.VISIBLE)
+        if (tv_items_here.getVisibility() == View.VISIBLE)
             tv_items_here.setVisibility(View.GONE);
 
-        if(tv_internet_connection.getVisibility() == View.GONE && bidsHistory.size() == 0)
+        if (tv_internet_connection.getVisibility() == View.GONE && bidsHistory.size() == 0)
             tv_internet_connection.setVisibility(View.VISIBLE);
 
     }
 
-    public void addBidHistory(int position, Bid bid){
+    public void addBidHistory(int position, Bid bid) {
         bidsHistory.add(position, bid);
         notifyItemInserted(position);
     }
 
     public MyBidsAdapter(Context context, boolean isAttached, RecyclerView recyclerView, RequestManager glide,
-                         final TextView tv_items_here, final TextView tv_internet_connection, final ProgressWheel progress_wheel, View view){
+                         final TextView tv_items_here, final TextView tv_internet_connection, final ProgressWheel progress_wheel, View view) {
         this.context = context;
         this.inflater = LayoutInflater.from(context);
         bidsHistory = new ArrayList<>();
@@ -197,7 +196,7 @@ public class MyBidsAdapter extends RecyclerView.Adapter<MyBidsAdapter.MyBidsHold
         this.recyclerView = recyclerView;
         this.glide = glide;
         this.tv_items_here = tv_items_here;
-        this.tv_internet_connection= tv_internet_connection;
+        this.tv_internet_connection = tv_internet_connection;
         this.progress_wheel = progress_wheel;
         isConnectionDisabledShowed = false;
         isConnectionRestoredShowed = false;
@@ -263,31 +262,39 @@ public class MyBidsAdapter extends RecyclerView.Adapter<MyBidsAdapter.MyBidsHold
         String date = CalendarUtils.ConvertMilliSecondsToFormattedDate(String.valueOf(bidsHistory.get(position).getBidDate()));
         holder.bidDate.setText(date);
 
-
         bidsHistory.get(position).getAuctionId();
 
-       mDatabase.child("auction").child(bidsHistory.get(position).getAuctionId()).addValueEventListener(new ValueEventListener() {
+        mDatabase.child("auction").child(bidsHistory.get(position).getAuctionId()).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                final Auction auction = dataSnapshot.getValue(Auction.class);
-                if(isAttached) {
-                    glide.load(auction.getImage1Uri())
-                            .asBitmap().centerCrop()
-                            .into(holder.itemImage);
-                }
-                holder.auctionTitle.setText(auction.getItemTitle());
+                try {
+                    final Auction auction = dataSnapshot.getValue(Auction.class);
 
-                holder.cont.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        Bundle extras = new Bundle();
-                        extras.putString(EXTRAS_AUCTION_ID, auction.getAuctionId());
-                        extras.putString(EXTRAS_POSTER_ID, auction.getUid());
-                        Intent intent = new Intent(context, BidNow.class);
-                        intent.putExtra(EXTRAS_BUNDLE, extras);
-                        context.startActivity(intent);
+                    if (isAttached) {
+                        glide.load(auction.getImage1Uri())
+                                .asBitmap().centerCrop()
+                                .into(holder.itemImage);
+
+
                     }
-                });
+                    holder.auctionTitle.setText(auction.getItemTitle());
+
+                    holder.cont.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+
+                            Bundle extras = new Bundle();
+                            extras.putString(EXTRAS_AUCTION_ID, auction.getAuctionId());
+                            extras.putString(EXTRAS_POSTER_ID, auction.getUid());
+                            Intent intent = new Intent(context, BidNow.class);
+                            intent.putExtra(EXTRAS_BUNDLE, extras);
+                            context.startActivity(intent);
+
+                        }
+                    });
+                } catch (NullPointerException e) {
+                    e.printStackTrace();
+                }
             }
 
             @Override
@@ -308,7 +315,7 @@ public class MyBidsAdapter extends RecyclerView.Adapter<MyBidsAdapter.MyBidsHold
         return bidsHistory.size();
     }
 
-    class MyBidsHolder extends RecyclerView.ViewHolder{
+    class MyBidsHolder extends RecyclerView.ViewHolder {
         View cont;
         ImageView itemImage;
         TextView bidAmount;
@@ -322,11 +329,11 @@ public class MyBidsAdapter extends RecyclerView.Adapter<MyBidsAdapter.MyBidsHold
             itemImage = (ImageView) itemView.findViewById(R.id.iv_item_image);
             bidAmount = (TextView) itemView.findViewById(R.id.tv_bid_amount);
             auctionTitle = (TextView) itemView.findViewById(R.id.tv_auction_title);
-            bidDate = (TextView)itemView.findViewById(R.id.tv_bid_date);
+            bidDate = (TextView) itemView.findViewById(R.id.tv_bid_date);
         }
     }
 
-    public void initSwipe(){
+    public void initSwipe() {
         ItemTouchHelper.SimpleCallback simpleCallback = new ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
             @Override
             public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
@@ -337,7 +344,7 @@ public class MyBidsAdapter extends RecyclerView.Adapter<MyBidsAdapter.MyBidsHold
             public void onSwiped(RecyclerView.ViewHolder viewHolder, int direction) {
                 final int pos = viewHolder.getAdapterPosition();
                 parentView.setTag(pos);
-                final Bid bid= bidsHistory.get(pos);
+                final Bid bid = bidsHistory.get(pos);
                 bidsHistory.remove(pos);
                 notifyItemRemoved(pos);
                 //Snackbar.make(view, R.string.notice_removed, Snackbar.LENGTH_SHORT).show();
@@ -346,9 +353,9 @@ public class MyBidsAdapter extends RecyclerView.Adapter<MyBidsAdapter.MyBidsHold
                             @Override
                             public void onDismissed(Snackbar snackbar, int event) {
                                 Log.d(DEBUG_TAG, "ONDISMESSED: TRUE" + bid.getId());
-                                if(isConnected){
+                                if (isConnected) {
                                     mDatabase.child("bidHistory").child(fUser.getUid()).child(bid.getId()).setValue(null);
-                                }else{
+                                } else {
                                     bidsHistory.add(pos, bid);
                                     notifyItemInserted(pos);
                                     snackBars.showCheckYourConnection();

@@ -287,7 +287,6 @@ public class UserFollowingAdapter extends RecyclerView.Adapter<UserFollowingAdap
 
     @Override
     public void onBindViewHolder(final FollowingHolder holder, final int position) {
-        AnimationUtil.setFadeAnimation(holder.itemView);
         Query userQuery = mDatabase.child("users").child(followings.get(position).getId());
         userQuery.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override

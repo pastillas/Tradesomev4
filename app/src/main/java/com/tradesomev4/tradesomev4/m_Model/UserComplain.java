@@ -11,16 +11,18 @@ public class UserComplain {
     String beingComplainedId;
     String key;
     String dateComplained;
+    boolean evaluated;
 
     public UserComplain() {
     }
 
-    public UserComplain(int reason, String complainerId, String beingComplainedId, String key, String dateComplained) {
+    public UserComplain(int reason, String complainerId, String beingComplainedId, String key, String dateComplained, boolean evaluated) {
         this.reason = reason;
         this.complainerId = complainerId;
         this.beingComplainedId = beingComplainedId;
         this.key = key;
         this.dateComplained = dateComplained;
+        this.evaluated = evaluated;
     }
 
     public int getReason() {
@@ -39,8 +41,17 @@ public class UserComplain {
         map.put("beingComplainedId", beingComplainedId);
         map.put("key", key);
         map.put("dateComplained", dateComplained);
+        map.put("evaluated", evaluated);
 
         return map;
+    }
+
+    public boolean isEvaluated() {
+        return evaluated;
+    }
+
+    public void setEvaluated(boolean evaluated) {
+        this.evaluated = evaluated;
     }
 
     public String getComplainerId() {

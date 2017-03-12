@@ -16,6 +16,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.tradesomev4.tradesomev4.AuctionBidFragment.UserAuctionsFragment;
 import com.tradesomev4.tradesomev4.AuctionBidFragment.UserBidsFragment;
 import com.tradesomev4.tradesomev4.m_Helpers.Connectivity;
+import com.tradesomev4.tradesomev4.m_Helpers.IsBlockedListener;
 import com.tradesomev4.tradesomev4.m_Helpers.SnackBars;
 
 import it.neokree.materialtabs.MaterialTab;
@@ -96,6 +97,7 @@ public class UserAuctionsBids extends AppCompatActivity implements MaterialTabLi
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
         getSupportActionBar().setTitle(args.getString(USER_NAME_KEY));
+        new IsBlockedListener(this, false, args.getString(USER_ID_KEY));
 
         ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
         pager = (ViewPager) findViewById(R.id.pager);

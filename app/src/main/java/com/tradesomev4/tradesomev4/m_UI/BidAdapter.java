@@ -35,6 +35,7 @@ import com.tradesomev4.tradesomev4.ViewUserProfile;
 import com.tradesomev4.tradesomev4.m_Helpers.CalendarUtils;
 import com.tradesomev4.tradesomev4.m_Helpers.Connectivity;
 import com.tradesomev4.tradesomev4.m_Helpers.DateHelper;
+import com.tradesomev4.tradesomev4.m_Helpers.Keys;
 import com.tradesomev4.tradesomev4.m_Helpers.SnackBars;
 import com.tradesomev4.tradesomev4.m_Model.Auction;
 import com.tradesomev4.tradesomev4.m_Model.Bid;
@@ -76,21 +77,21 @@ public class BidAdapter extends RecyclerView.Adapter<BidAdapter.BidHolder> {
     SnackBars snackBars;
     CountDownTimer timeOuttimer;
     int puta;
-    public ArrayList<Participant>participants;
+    public ArrayList<Participant> participants;
 
 
-    public void timeOut(){
+    public void timeOut() {
         timeOuttimer = new CountDownTimer(30000, 1000) {
             @Override
             public void onTick(long l) {
-                if(bids.size() > 0){
+                if (bids.size() > 0) {
                     hideAll();
                 }
             }
 
             @Override
             public void onFinish() {
-                if(isConnected && bids.size() == 0)
+                if (isConnected && bids.size() == 0)
                     showItemsHere();
             }
         };
@@ -98,7 +99,7 @@ public class BidAdapter extends RecyclerView.Adapter<BidAdapter.BidHolder> {
         timeOuttimer.start();
     }
 
-    public void timer(){
+    public void timer() {
         final CountDownTimer c = new CountDownTimer(1000, 1000) {
 
             @Override
@@ -109,19 +110,19 @@ public class BidAdapter extends RecyclerView.Adapter<BidAdapter.BidHolder> {
             public void onFinish() {
                 Connectivity connectivity = new Connectivity(context.getApplicationContext());
 
-                if(!connectivity.isConnected()) {
+                if (!connectivity.isConnected()) {
                     isConnectionRestoredShowed = false;
                     isConnected = false;
 
-                    if(puta == 1)
+                    if (puta == 1)
                         puta++;
 
-                    if(!isConnectionDisabledShowed){
+                    if (!isConnectionDisabledShowed) {
                         snackBars.showConnectionDisabledDialog();
                         isConnectionDisabledShowed = true;
                     }
 
-                    if(timeOuttimer != null)
+                    if (timeOuttimer != null)
                         timeOuttimer.cancel();
 
                     showConnectionError();
@@ -129,11 +130,11 @@ public class BidAdapter extends RecyclerView.Adapter<BidAdapter.BidHolder> {
                     isConnected = true;
                     isConnectionDisabledShowed = false;
 
-                    if(puta != 1 && !isConnectionRestoredShowed){
+                    if (puta != 1 && !isConnectionRestoredShowed) {
                         snackBars.showConnectionRestored();
                         isConnectionRestoredShowed = true;
                     }
-                    if(bids.size() == 0 && puta == 2){
+                    if (bids.size() == 0 && puta == 2) {
                         Log.d(DEBUG_TAG, "PUTA 2: TRUE");
                         hideAll();
                         showLoading();
@@ -142,7 +143,7 @@ public class BidAdapter extends RecyclerView.Adapter<BidAdapter.BidHolder> {
                     }
                 }
 
-                if(bids.size() > 0){
+                if (bids.size() > 0) {
                     //hideAll();
                 }
 
@@ -150,47 +151,48 @@ public class BidAdapter extends RecyclerView.Adapter<BidAdapter.BidHolder> {
             }
         }.start();
     }
-    public void hideAll(){
-        if(progress_wheel.getVisibility() == View.VISIBLE)
+
+    public void hideAll() {
+        if (progress_wheel.getVisibility() == View.VISIBLE)
             progress_wheel.setVisibility(View.GONE);
 
-        if(tv_items_here.getVisibility() == View.VISIBLE)
+        if (tv_items_here.getVisibility() == View.VISIBLE)
             tv_items_here.setVisibility(View.GONE);
 
-        if(tv_internet_connection.getVisibility() == View.VISIBLE)
+        if (tv_internet_connection.getVisibility() == View.VISIBLE)
             tv_internet_connection.setVisibility(View.GONE);
     }
 
-    public void showItemsHere(){
-        if(progress_wheel.getVisibility() == View.VISIBLE)
+    public void showItemsHere() {
+        if (progress_wheel.getVisibility() == View.VISIBLE)
             progress_wheel.setVisibility(View.GONE);
 
-        if(tv_internet_connection.getVisibility() == View.VISIBLE)
+        if (tv_internet_connection.getVisibility() == View.VISIBLE)
             tv_internet_connection.setVisibility(View.GONE);
 
-        if(tv_items_here.getVisibility() == View.GONE)
+        if (tv_items_here.getVisibility() == View.GONE)
             tv_items_here.setVisibility(View.VISIBLE);
     }
 
-    public void showLoading(){
-        if(progress_wheel.getVisibility() == View.GONE)
+    public void showLoading() {
+        if (progress_wheel.getVisibility() == View.GONE)
             progress_wheel.setVisibility(View.VISIBLE);
 
-        if(tv_internet_connection.getVisibility() == View.VISIBLE)
+        if (tv_internet_connection.getVisibility() == View.VISIBLE)
             tv_internet_connection.setVisibility(View.GONE);
 
-        if(tv_items_here.getVisibility() == View.VISIBLE)
+        if (tv_items_here.getVisibility() == View.VISIBLE)
             tv_items_here.setVisibility(View.GONE);
     }
 
-    public void showConnectionError(){
-        if(progress_wheel.getVisibility() == View.VISIBLE)
+    public void showConnectionError() {
+        if (progress_wheel.getVisibility() == View.VISIBLE)
             progress_wheel.setVisibility(View.GONE);
 
-        if(tv_items_here.getVisibility() == View.VISIBLE)
+        if (tv_items_here.getVisibility() == View.VISIBLE)
             tv_items_here.setVisibility(View.GONE);
 
-        if(tv_internet_connection.getVisibility() == View.GONE && bids.size() == 0)
+        if (tv_internet_connection.getVisibility() == View.GONE && bids.size() == 0)
             tv_internet_connection.setVisibility(View.VISIBLE);
 
     }
@@ -208,7 +210,7 @@ public class BidAdapter extends RecyclerView.Adapter<BidAdapter.BidHolder> {
         this.recyclerView = recyclerView;
         this.glide = glide;
         this.tv_items_here = tv_items_here;
-        this.tv_internet_connection= tv_internet_connection;
+        this.tv_internet_connection = tv_internet_connection;
         this.progress_wheel = progress_wheel;
         isConnectionDisabledShowed = false;
         isConnectionRestoredShowed = false;
@@ -278,9 +280,9 @@ public class BidAdapter extends RecyclerView.Adapter<BidAdapter.BidHolder> {
     }
 
     public void addBid(Bid bid) {
-        bids.add(bid);
-        notifyItemInserted(getItemCount());
-        recyclerView.smoothScrollToPosition(getItemCount());
+        bids.add(0, bid);
+        notifyItemInserted(0);
+        recyclerView.smoothScrollToPosition(0);
 
     }
 
@@ -289,18 +291,20 @@ public class BidAdapter extends RecyclerView.Adapter<BidAdapter.BidHolder> {
         View view = layoutInflater.inflate(R.layout.bid_model, parent, false);
         BidHolder bidHolder = new BidHolder(view);
 
+
         if (position > previousPosition)
-            AnimationUtil.animate2(bidHolder, true);
+            AnimationUtil.animate(bidHolder, true);
         else
-            AnimationUtil.animate2(bidHolder, false);
+            AnimationUtil.animate(bidHolder, false);
+
         return bidHolder;
     }
 
-    public void addNotification(Notif notif){
-        for(int i = 0; i < participants.size(); i++){
+    public void addNotification(Notif notif) {
+        for (int i = 0; i < participants.size(); i++) {
             Participant participant = participants.get(i);
 
-            if(!participant.getId().equals(fUser.getUid())){
+            if (!participant.getId().equals(fUser.getUid())) {
                 String key = databaseReference.child("users").child(participant.getId()).child("notifs").push().getKey();
                 notif.setKey(key);
                 databaseReference.child("users").child(participant.getId()).child("notifs").setValue(notif);
@@ -308,17 +312,19 @@ public class BidAdapter extends RecyclerView.Adapter<BidAdapter.BidHolder> {
         }
     }
 
-    public Notif newNotif(String type){
+    public Notif newNotif(String type) {
         Notif notif = new Notif();
         notif.setType(type);
         notif.setAuctionId(auctionId);
         notif.setRead(false);
         notif.setDate(DateHelper.getCurrentDateInMil());
+        notif.setReceived(false);
+        notif.setPosterId(posterId);
 
-        return  notif;
+        return notif;
     }
 
-    public void displayDialog(){
+    public void displayDialog() {
         new MaterialDialog.Builder(context.getApplicationContext())
                 .title("Falied")
                 .content("Sorry, were having some issues right now. Please try again later thank you.")
@@ -329,12 +335,12 @@ public class BidAdapter extends RecyclerView.Adapter<BidAdapter.BidHolder> {
     @Override
     public void onBindViewHolder(final BidHolder holder, final int position) {
         final DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
-
         Query userRef = mDatabase.child("users").child(bids.get(position).getUserId());
-        userRef.addValueEventListener(new ValueEventListener() {
+
+        userRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                User user = dataSnapshot.getValue(User.class);
+                final User user = dataSnapshot.getValue(User.class);
                 name = user.getName();
                 bidderId = user.getId();
 
@@ -345,23 +351,108 @@ public class BidAdapter extends RecyclerView.Adapter<BidAdapter.BidHolder> {
                 }
 
                 holder.name.setText(user.getName());
-                if (!bids.get(position).getUserId().equals(fUser.getUid())) {
-                    holder.image.setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            Bundle args = new Bundle();
-                            args.putString(EXTRAS_POSTER_ID, bids.get(position).getUserId());
-                            if (!bids.get(position).getUserId().equals(fUser.getUid())) {
-                                Intent viewUserProfile = new Intent(context, ViewUserProfile.class);
-                                viewUserProfile.putExtra(EXTRAS_BUNDLE, args);
-                                context.startActivity(viewUserProfile);
-                            } else {
-                                Intent myProfile = new Intent(context, MyProfile.class);
-                                context.startActivity(myProfile);
-                            }
+
+                holder.container.setOnLongClickListener(new View.OnLongClickListener() {
+                    @Override
+                    public boolean onLongClick(View view) {
+                        Log.d(Keys.DEBUG_TAG, user.getName());
+                        if (auction.getUid().equals(fUser.getUid()) && auctionInstance.isStatus() && !fUser.getUid().equals(bids.get(position).getUserId())) {
+                            new MaterialDialog.Builder(context)
+                                    .title("Confirm?")
+                                    .content("Do you want to accept the bid of " + user.getName() + " for " + bids.get(position).getTitle() + "?")
+                                    .negativeText("No")
+                                    .positiveText("Yes")
+                                    .onAny(new MaterialDialog.SingleButtonCallback() {
+                                        @Override
+                                        public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                                            String choice = which.name();
+                                            final DatabaseReference updateStatus = FirebaseDatabase.getInstance().getReference();
+                                            if (choice.equals("POSITIVE")) {
+                                                updateStatus.child("auction").child(auctionId).child("status").setValue(false).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                    @Override
+                                                    public void onComplete(@NonNull Task<Void> task) {
+                                                        final Bid bid = new Bid();
+                                                        bid.setAuctionId(auctionId);
+                                                        bid.setUserId(fUser.getUid());
+                                                        bid.setTitle("I accept the bid of " + user.getName() + ", amount: " + bids.get(position).getTitle() + ".");
+                                                        bid.setBidDate(Long.parseLong(DateHelper.getCurrentDateInMil()));
+                                                        String key = updateStatus.child("auction").child(auctionId).push().getKey();
+                                                        Map<String, Object> bidValues = bid.toMap();
+                                                        Map<String, Object> childUpdate = new HashMap<>();
+                                                        childUpdate.put("/auction/" + auctionId + "/bid/" + key, bidValues);
+                                                        updateStatus.updateChildren(childUpdate);
+
+                                                        //send notif to auctioner
+                                                        String content = auction.getItemTitle() + ": item auction success for " + bids.get(position).getTitle() + " by " + user.getName();
+                                                        Notif notif = new Notif();
+                                                        notif.setPosterId(fUser.getUid());
+                                                        notif.setBidderId(bidderId);
+                                                        notif.setContent(content);
+                                                        notif.setType("finishAuctioner");
+                                                        notif.setAuctionId(auctionId);
+                                                        notif.setRead(true);
+                                                        notif.setDate(DateHelper.getCurrentDateInMil());
+                                                        notif.setReceived(false);
+                                                        notif.setPosterId(posterId);
+                                                        String tmpKey = databaseReference.child("users").child(fUser.getUid()).child("notifs").push().getKey();
+                                                        notif.setKey(tmpKey);
+                                                        databaseReference.child("users").child(fUser.getUid()).child("notifs").child(tmpKey).setValue(notif);
+
+                                                        String content2 = "You won the auctioned item: " + auction.getItemTitle() + " of " + fUser.getDisplayName() + " for " + bids.get(position).getTitle();
+                                                        notif.setContent(content2);
+                                                        notif.setType("finishWinner");
+                                                        notif.setRead(false);
+                                                        String tmpKey2 = databaseReference.child("users").child(bidderId).child("notifs").push().getKey();
+                                                        notif.setKey(tmpKey2);
+                                                        databaseReference.child("users").child(bidderId).child("notifs").child(tmpKey2).setValue(notif);
+
+                                                        String keyNotifBackground = databaseReference.child("users").child(bidderId).child("notifsBackground").push().getKey();
+                                                        notif.setKey(keyNotifBackground);
+                                                        databaseReference.child("users").child(bidderId).child("notifsBackground").child(keyNotifBackground).setValue(notif);
+
+                                                        notif.setType("finishBidder");
+                                                        notif.setContent(fUser.getDisplayName() + " accepted the offer of " + user.getName() + " for " + bids.get(position).getTitle());
+                                                        for (int i = 0; i < participants.size(); i++) {
+                                                            if (!participants.get(i).getId().equals(bidderId) && !participants.get(i).getId().equals(fUser.getUid())) {
+                                                                Participant participant = participants.get(i);
+                                                                String tmpKey3 = databaseReference.child("users").child(participant.getId()).child("notifs").push().getKey();
+                                                                notif.setKey(tmpKey3);
+                                                                databaseReference.child("users").child(participant.getId()).child("notifs").child(tmpKey3).setValue(notif);
+
+                                                                tmpKey3 = databaseReference.child("users").child(participant.getId()).child("notifsBackground").push().getKey();
+                                                                notif.setKey(tmpKey3);
+                                                                databaseReference.child("users").child(participant.getId()).child("notifsBackground").child(tmpKey3).setValue(notif);
+                                                            }
+                                                        }
+                                                    }
+                                                }).addOnFailureListener(new OnFailureListener() {
+                                                    @Override
+                                                    public void onFailure(@NonNull Exception e) {
+                                                        displayDialog();
+                                                    }
+                                                }).addOnCompleteListener(new OnCompleteListener<Void>() {
+                                                    @Override
+                                                    public void onComplete(@NonNull Task<Void> task) {
+                                                        /*mDatabase.child("auction").child(auction.getAuctionId()).setValue(null);
+                                                        mDatabase.child("auctionHistory").child(auction.getUid()).child(auction.getAuctionId()).setValue(null);
+                                                        for(int i = 0; i  < participants.size(); i++){
+                                                            mDatabase.child("bidHistory").child(participants.get(i).getId()).child(auction.getAuctionId()).setValue(null);
+                                                        }*/
+                                                    }
+                                                });
+
+
+                                            }
+
+                                        }
+                                    }).show();
+
                         }
-                    });
-                }
+
+
+                        return true;
+                    }
+                });
             }
 
             @Override
@@ -373,97 +464,13 @@ public class BidAdapter extends RecyclerView.Adapter<BidAdapter.BidHolder> {
         holder.title.setText(bids.get(position).getTitle());
         String date = CalendarUtils.ConvertMilliSecondsToFormattedDate(String.valueOf(bids.get(position).getBidDate()));
         holder.bidDate.setText(date);
+
         if (position > previousPosition)
             AnimationUtil.animate(holder, true);
         else
             AnimationUtil.animate(holder, false);
 
         previousPosition = position;
-        final int currentPosition = position;
-        final Bid bidfinal = bids.get(position);
-
-        holder.container.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                if (auction.getUid().equals(fUser.getUid()) && auctionInstance.isStatus() && !fUser.getUid().equals(bidfinal.getUserId())) {
-                    new MaterialDialog.Builder(context)
-                            .title("Confirm?")
-                            .content("Do you want to accept the bid of " + name + " for " + bidfinal.getTitle() + "?")
-                            .negativeText("No")
-                            .positiveText("Yes")
-                            .onAny(new MaterialDialog.SingleButtonCallback() {
-                                @Override
-                                public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                                    String choice = which.name();
-                                    final DatabaseReference updateStatus = FirebaseDatabase.getInstance().getReference();
-                                    if (choice.equals("POSITIVE")) {
-                                        updateStatus.child("auction").child(auctionId).child("status").setValue(false).addOnCompleteListener(new OnCompleteListener<Void>() {
-                                            @Override
-                                            public void onComplete(@NonNull Task<Void> task) {
-                                                final Bid bid = new Bid();
-                                                bid.setAuctionId(auctionId);
-                                                bid.setUserId(fUser.getUid());
-                                                bid.setTitle("I accept the bid of " + name + ", amount: " + bidfinal.getTitle() + ".");
-                                                bid.setBidDate(Long.parseLong(DateHelper.getCurrentDateInMil()));
-                                                String key = updateStatus.child("auction").child(auctionId).push().getKey();
-                                                Map<String, Object> bidValues = bid.toMap();
-                                                Map<String, Object> childUpdate = new HashMap<>();
-                                                childUpdate.put("/auction/" + auctionId + "/bid/" + key, bidValues);
-                                                updateStatus.updateChildren(childUpdate);
-
-                                                //send notif to auctioner
-                                                String content = auction.getItemTitle() + ": item auction success for " + bidfinal.getTitle() + " by " + name;
-                                                Notif notif = new Notif();
-                                                notif.setPosterId(fUser.getUid());
-                                                notif.setBidderId(bidderId);
-                                                notif.setContent(content);
-                                                notif.setType("finishAuctioner");
-                                                notif.setAuctionId(auctionId);
-                                                notif.setRead(true);
-                                                notif.setDate(DateHelper.getCurrentDateInMil());
-                                                String tmpKey = databaseReference.child("users").child(fUser.getUid()).child("notifs").push().getKey();
-                                                notif.setKey(tmpKey);
-                                                databaseReference.child("users").child(fUser.getUid()).child("notifs").child(tmpKey).setValue(notif);
-
-                                                String content2 = "You won the auctioned item: " + auction.getItemTitle() + " of " + fUser.getDisplayName() + " for " + bidfinal.getTitle();
-                                                notif.setContent(content2);
-                                                notif.setType("finishWinner");
-                                                notif.setRead(false);
-                                                String tmpKey2 = databaseReference.child("users").child(bidderId).child("notifs").push().getKey();
-                                                notif.setKey(tmpKey2);
-                                                databaseReference.child("users").child(bidderId).child("notifs").child(tmpKey2).setValue(notif);
-
-                                                notif.setType("finishBidder");
-                                                notif.setContent(fUser.getDisplayName() + " accepted the offer of " + name + " for " + bidfinal.getTitle());
-                                                for(int i = 0; i < participants.size(); i++){
-                                                    if(!participants.get(i).getId().equals(bidderId) && !participants.get(i).getId().equals(fUser.getUid())){
-                                                        Participant participant = participants.get(i);
-                                                        String tmpKey3 = databaseReference.child("users").child(participant.getId()).child("notifs").push().getKey();
-                                                        notif.setKey(tmpKey3);
-                                                        databaseReference.child("users").child(participant.getId()).child("notifs").child(tmpKey3).setValue(notif);
-                                                    }
-                                                }
-                                            }
-                                        }).addOnFailureListener(new OnFailureListener() {
-                                            @Override
-                                            public void onFailure(@NonNull Exception e) {
-                                                displayDialog();
-                                            }
-                                        });
-
-
-
-
-                                    }
-
-                                }
-                            }).show();
-
-                }
-
-                return true;
-            }
-        });
 
         holder.container.setOnClickListener(new View.OnClickListener() {
             @Override

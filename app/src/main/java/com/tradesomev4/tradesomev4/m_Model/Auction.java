@@ -6,8 +6,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Created by Pastillas-Boy on 7/11/2016.
+ * Created by Jorge Benigno Pante, Joshua Alarcon, Charles Torrente on 7/11/2016.
+ * File Name: Auction.java
+ * File Path: Tradesomev4\app\src\main\java\com\tradesomev4\tradesomev4\m_Model\Auction.java
+ * Description: Auction class model for every auction instance received or to be sent to Firebase.
  */
+
 public class Auction {
     public String uid;
     public String auctionId;

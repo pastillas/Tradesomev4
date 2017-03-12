@@ -9,8 +9,12 @@ import com.tradesomev4.tradesomev4.m_UI.SearchItemAdapter;
 import java.util.ArrayList;
 
 /**
- * Created by Pastillas-Boy on 7/28/2016.
+ * Created by Charles Torrente, Jorge Benigno Pante, Joshua Alarcon on 7/28/2016.
+ * File Name: SearchItemFilter.java
+ * File Path: Tradesomev4\app\src\main\java\com\tradesomev4\tradesomev4\Filters\SearchItemFilter.java
+ * Description: Search filter for Items.
  */
+
 public class SearchItemFilter extends Filter {
     ArrayList<Auction> auctions;
     SearchItemAdapter adapter;
@@ -51,7 +55,7 @@ public class SearchItemFilter extends Filter {
             if (query != null && query.length() > 0) {
                 adapter.isSearching = true;
                 for (int i = 0; i < auctions.size(); i++) {
-                    if (auctions.get(i).getCategory().equals(category) && auctions.get(i).getItemTitle().toUpperCase().contains(query)) {
+                    if (auctions.get(i).getCategory().equals(category) && auctions.get(i).getItemTitle().toUpperCase().contains(query.toUpperCase())) {
                         filteredAuctions.add(auctions.get(i));
                     }
                 }

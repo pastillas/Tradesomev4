@@ -20,7 +20,10 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by Pastillas-Boy on 7/18/2016.
+ * Created by Charles Torrente, Joshua Alarcon, Jorge Benigno Pante on 7/18/2016.
+ * File Name: DirectionFinder.java
+ * File Path: Tradesomev4\app\src\main\java\com\tradesomev4\tradesomev4\direction_helpers\DirectionFinder.java
+ * Description: Parsing the Direction from Google Maps API reurned JSON data.
  */
 public class DirectionFinder {
     private static final String DIRECTION_URL_API = "https://maps.googleapis.com/maps/api/directions/json?";

@@ -8,7 +8,10 @@ import com.tradesomev4.tradesomev4.m_UI.UserFollowersAdapter;
 import java.util.ArrayList;
 
 /**
- * Created by Pastillas-Boy on 7/22/2016.
+ * Created by Charles Torrente, Jorge Benigno Pante, Joshua Alarcon on 7/22/2016.
+ * File Name: UserFollowersFilter.java
+ * File Path: Tradesomev4\app\src\main\java\com\tradesomev4\tradesomev4\Filters\UserFollowersFilter.java
+ * Description: Search filter for User's followers.
  */
 public class UserFollowersFilter extends Filter {
     ArrayList<Follower>followers;

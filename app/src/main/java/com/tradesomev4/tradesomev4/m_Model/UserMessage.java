@@ -4,7 +4,10 @@ import java.util.Calendar;
 import java.util.HashMap;
 
 /**
- * Created by Pastillas-Boy on 7/19/2016.
+ * Created by Joshua Alarcon, Jorge Benigno Pante on 7/19/2016.
+ * File name: UserMessage.java
+ * File Path: Tradesomev4\app\src\main\java\com\tradesomev4\tradesomev4\m_Model\UserMessage.java
+ * Description: Message Class model.
  */
 public class UserMessage {
     String message;

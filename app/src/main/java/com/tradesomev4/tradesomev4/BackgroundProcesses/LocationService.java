@@ -31,6 +31,13 @@ import com.tradesomev4.tradesomev4.m_Model.AuctionHistory;
 
 import java.util.ArrayList;
 
+/**
+ * Created by Jorge Benigno Pante, Joshua Alarcon, Charles Torrente on 10/2/2016.
+ * File Name: LocationService.java
+ * File Path: Tradesomev4\app\src\main\java\com\tradesomev4\tradesomev4\BackgroundProcesses\LocationService.java
+ * Description: Get the current user's Physical Location in Coordinates every Ten Thousand Milliseconds then Update Firebase Realtime Database..
+ */
+
 public class LocationService extends Service {
     private static final String TAG = "BOOMBOOMTESTGPS";
     private LocationManager mLocationManager = null;

@@ -6,15 +6,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.SystemClock;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.NavigationView;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
@@ -41,9 +43,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.pnikosis.materialishprogress.ProgressWheel;
 import com.tradesomev4.tradesomev4.BackgroundProcesses.LocationService;
-import com.tradesomev4.tradesomev4.m_Helpers.GPSTracker;
+import com.tradesomev4.tradesomev4.m_Helpers.IsBlockedListener;
 import com.tradesomev4.tradesomev4.m_Helpers.Keys;
-import com.tradesomev4.tradesomev4.m_Helpers.ServiceBroadcastReceiver;
+import com.tradesomev4.tradesomev4.m_Helpers.RecyclerViewLayoutManager;
+import com.tradesomev4.tradesomev4.BackgroundProcesses.ServiceBroadcastReceiver;
 import com.tradesomev4.tradesomev4.m_Model.User;
 import com.tradesomev4.tradesomev4.m_UI.AuctionAdapter;
 
@@ -64,6 +67,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     View content_main;
     private GoogleApiClient mGoogleApiClient;
     NavigationView navigationView;
+    SwipeRefreshLayout mSwipeRefreshLayout;
 
     protected void createLocationRequest() {
         LocationRequest mLocationRequest = new LocationRequest();
@@ -103,7 +107,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         });
     }
 
-    public void initGoogleApi(){
+    public void initGoogleApi() {
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addConnectionCallbacks(this)
                 .addOnConnectionFailedListener(this)
@@ -124,18 +128,34 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         initUserDb();
 
         initViews(toolbar);
+        mSwipeRefreshLayout = (SwipeRefreshLayout) findViewById(R.id.swiperefresh);
+        mSwipeRefreshLayout.setColorSchemeColors(ContextCompat.getColor(getApplicationContext(), R.color.orange),
+                ContextCompat.getColor(getApplicationContext(), R.color.green),
+                ContextCompat.getColor(getApplicationContext(), R.color.colorAccent));
+        mSwipeRefreshLayout.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        initRecyclerView();
 
+                        mSwipeRefreshLayout.setRefreshing(false);
+                    }
+                }, 5000);
+            }
+        });
+
+        new IsBlockedListener(this, false, fUser.getUid());
         startService(new Intent(getBaseContext(), LocationService.class));
         Intent intent = new Intent(this, ServiceBroadcastReceiver.class);
-        boolean isRunning = (PendingIntent.getBroadcast(this, 0, intent,PendingIntent.FLAG_NO_CREATE) != null);
-        if(isRunning == false){
+        boolean isRunning = (PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_NO_CREATE) != null);
+        if (isRunning == false) {
             PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
-            AlarmManager alarmManager  = (AlarmManager)getSystemService(Context.ALARM_SERVICE);
+            AlarmManager alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
             alarmManager.setRepeating(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime(), 1000, pendingIntent);
         }
-
-       //startService(new Intent(getBaseContext(), CurrentUserNotifications.class));
-
+        //startService(new Intent(getBaseContext(), CurrentUserNotifications.class));
         //startService(new Intent(getBaseContext(), BaseNotificationManager.class));
     }
 
@@ -143,7 +163,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         mDatabase = FirebaseDatabase.getInstance().getReference();
         fUser = FirebaseAuth.getInstance().getCurrentUser();
 
-        if(fUser == null){
+        if (fUser == null) {
             Intent intent = new Intent(getApplicationContext(), CreateAccount.class);
             startActivity(intent);
         }
@@ -153,6 +173,22 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         user.setId(fUser.getUid());
         user.setEmail(fUser.getEmail());
         user.setImage(fUser.getPhotoUrl().toString());
+    }
+
+    public void initRecyclerView() {
+        boolean isAttached;
+        onAttachedToWindow();
+        isAttached = true;
+
+        try {
+            recyclerView = (RecyclerView) findViewById(R.id.main_recycler_view);
+            recyclerView.setHasFixedSize(true);
+            adapter = new AuctionAdapter(this, fUser, isAttached, recyclerView, Glide.with(this), tv_items_here, tv_internet_connection, progress_wheel, content_main);
+            recyclerView.setLayoutManager(new RecyclerViewLayoutManager(this));
+            recyclerView.setAdapter(adapter);
+        } catch (IndexOutOfBoundsException e) {
+            e.printStackTrace();
+        }
     }
 
 
@@ -178,14 +214,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         nameT = (TextView) v.findViewById(R.id.email);
         profilePicture = (ImageView) v.findViewById(R.id.profilePicture);
 
-        boolean isAttached;
-        onAttachedToWindow();
-        isAttached = true;
-
-        recyclerView = (RecyclerView) findViewById(R.id.main_recycler_view);
-        adapter = new AuctionAdapter(this, fUser, isAttached, recyclerView, Glide.with(this), tv_items_here, tv_internet_connection, progress_wheel, content_main);
-        recyclerView.setAdapter(adapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        initRecyclerView();
 
         emailT.setText(user.getEmail());
         nameT.setText(user.getName());
@@ -200,6 +229,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
     public void onStart() {
         mGoogleApiClient.connect();
         super.onStart();
+
     }
 
 
@@ -294,10 +324,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
             case R.id.nav_profile:
                 Intent myProfileIntent = new Intent(getApplicationContext(), MyProfile.class);
                 startActivity(myProfileIntent);
-                break;
-            case R.id.nav_gps:
-                Intent gPSTrackerIntent = new Intent(getApplicationContext(), GPSTracker.class);
-                startActivity(gPSTrackerIntent);
                 break;
             case R.id.nav_sign_out:
                 FirebaseAuth.getInstance().signOut();

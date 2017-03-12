@@ -271,74 +271,76 @@ public class UserAuctionsAdapter extends RecyclerView.Adapter<UserAuctionsAdapte
         View view = inflater.inflate(R.layout.user_auctions_model, parent, false);
         MyAuctionsHolder holder = new MyAuctionsHolder(view);
 
-        /*
         if (position > prevPos) {
             AnimationUtil.animate(holder, true);
         } else {
             AnimationUtil.animate(holder, false);
-        }*/
+        }
 
         return holder;
     }
 
     @Override
     public void onBindViewHolder(final MyAuctionsHolder holder, final int position) {
-        AnimationUtil.setFadeAnimation(holder.itemView);
         final Query auctionRef = mDatabase.child("auction").child(auctionHistories.get(position).getAuctionId());
         final Query bidsRef = mDatabase.child("auction").child(auctionHistories.get(position).getAuctionId()).child("bid");
         auctionListener = new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                Auction auction = dataSnapshot.getValue(Auction.class);
+                try {
+                    Auction auction = dataSnapshot.getValue(Auction.class);
 
-                if (!TextUtils.isEmpty(auction.image1Uri)) {
-                    glide.load(auction.getImage1Uri())
+                    if (!TextUtils.isEmpty(auction.image1Uri)) {
+                        glide.load(auction.getImage1Uri())
+                                .asBitmap().centerCrop()
+                                .into(holder.itemImage);
+                    }
+
+                    glide.load(user.getImage())
                             .asBitmap().centerCrop()
-                            .into(holder.itemImage);
-                }
+                            .into(holder.posterImage);
 
-                glide.load(user.getImage())
-                        .asBitmap().centerCrop()
-                        .into(holder.posterImage);
+                    holder.posterName.setText(user.getName());
+                    //new ImageLoadTask(holder.itemImage).execute(auction.getImage1Uri());
+                    holder.title.setText(auction.getItemTitle());
 
-                holder.posterName.setText(user.getName());
-                //new ImageLoadTask(holder.itemImage).execute(auction.getImage1Uri());
-                holder.title.setText(auction.getItemTitle());
+                    String date = CalendarUtils.ConvertMilliSecondsToFormattedDate(auction.getDirectoryName());
+                    holder.datePost.setText(date);
 
-                String date = CalendarUtils.ConvertMilliSecondsToFormattedDate(auction.getDirectoryName());
-                holder.datePost.setText(date);
-
-                bidsListener = new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        holder.bids.setText(" " + String.valueOf(dataSnapshot.getChildrenCount()));
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                };
-                bidsRef.addValueEventListener(bidsListener);
-
-
-                if (auction.isHidden()) {
-                    try {
-                        for (int i = 0; i < auctionHistories.size(); i++) {
-                            if (auctionHistories.get(position).getAuctionId().equals(auctionHistories.get(i).getAuctionId())) {
-                                auctionHistories.remove(i);
-                                notifyDataSetChanged();
-                                bidsRef.removeEventListener(bidsListener);
-                                auctionRef.removeEventListener(auctionListener);
-                                if (auctionHistories.size() == 0)
-                                    timeOut();
-                                break;
-                            }
+                    bidsListener = new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            holder.bids.setText(" " + String.valueOf(dataSnapshot.getChildrenCount()));
                         }
-                        return;
-                    } catch (IndexOutOfBoundsException e) {
-                        e.printStackTrace();
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    };
+                    bidsRef.addValueEventListener(bidsListener);
+
+
+                    if (auction.isHidden()) {
+                        try {
+                            for (int i = 0; i < auctionHistories.size(); i++) {
+                                if (auctionHistories.get(position).getAuctionId().equals(auctionHistories.get(i).getAuctionId())) {
+                                    auctionHistories.remove(i);
+                                    notifyDataSetChanged();
+                                    bidsRef.removeEventListener(bidsListener);
+                                    auctionRef.removeEventListener(auctionListener);
+                                    if (auctionHistories.size() == 0)
+                                        timeOut();
+                                    break;
+                                }
+                            }
+                            return;
+                        } catch (IndexOutOfBoundsException e) {
+                            e.printStackTrace();
+                        }
                     }
+                } catch (NullPointerException e) {
+                    e.printStackTrace();
                 }
             }
 

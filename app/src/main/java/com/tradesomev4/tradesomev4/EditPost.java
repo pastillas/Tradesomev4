@@ -162,24 +162,38 @@ public class EditPost extends AppCompatActivity implements
                     auction = dataSnapshot.getValue(Auction.class);
 
                     if (compressUri1 != null) {
+                        requestManager.load(compressUri1)
+                                .asBitmap().centerCrop()
+                                .into(itemImage1);
+                    }else{
                         requestManager.load(auction.getImage1Uri())
                                 .asBitmap().centerCrop()
                                 .into(itemImage1);
                     }
-
                     if (compressUri2 != null) {
+                        requestManager.load(compressUri2)
+                                .asBitmap().centerCrop()
+                                .into(itemImage2);
+                    }else{
                         requestManager.load(auction.getImage2Uri())
                                 .asBitmap().centerCrop()
                                 .into(itemImage2);
                     }
 
                     if (compressUri3 != null) {
+                        requestManager.load(compressUri3)
+                                .asBitmap().centerCrop()
+                                .into(itemImage3);
+                    }else{
                         requestManager.load(auction.getImage3Uri())
                                 .asBitmap().centerCrop()
                                 .into(itemImage3);
                     }
-
                     if (compressUri4 != null) {
+                        requestManager.load(compressUri4)
+                                .asBitmap().centerCrop()
+                                .into(itemImage4);
+                    }else{
                         requestManager.load(auction.getImage4Uri())
                                 .asBitmap().centerCrop()
                                 .into(itemImage4);

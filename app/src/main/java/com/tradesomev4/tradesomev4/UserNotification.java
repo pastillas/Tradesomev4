@@ -11,7 +11,15 @@ import com.bumptech.glide.Glide;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.pnikosis.materialishprogress.ProgressWheel;
+import com.tradesomev4.tradesomev4.m_Helpers.IsBlockedListener;
 import com.tradesomev4.tradesomev4.m_UI.NotifAdapter;
+
+/*
+* Created by: Joshua Alarcon, Jorge Benigno Pant, Charles Torrente
+* File Name: UserNotification.java
+* File Path: Tradesomev4\app\src\main\java\com\tradesomev4\tradesomev4\UserNotification.java
+* Desciption: Display all Notifications.
+*/
 
 public class UserNotification extends AppCompatActivity {
     private RecyclerView recyclerView;
@@ -28,6 +36,8 @@ public class UserNotification extends AppCompatActivity {
         setContentView(R.layout.activity_notifications);
 
         fUser = FirebaseAuth.getInstance().getCurrentUser();
+        new IsBlockedListener(this, false, fUser.getUid());
+
 
         content_main = findViewById(R.id.content_main);
         tv_items_here = (TextView) findViewById(R.id.tv_items_here);

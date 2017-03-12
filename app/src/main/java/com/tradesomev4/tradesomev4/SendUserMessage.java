@@ -1,6 +1,7 @@
 package com.tradesomev4.tradesomev4;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -16,6 +17,7 @@ import android.widget.TextView;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestManager;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -25,7 +27,10 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.pnikosis.materialishprogress.ProgressWheel;
 import com.tradesomev4.tradesomev4.m_Helpers.DateHelper;
+import com.tradesomev4.tradesomev4.m_Helpers.IsBlockedListener;
+import com.tradesomev4.tradesomev4.m_Helpers.Keys;
 import com.tradesomev4.tradesomev4.m_Model.Notif;
+import com.tradesomev4.tradesomev4.m_Model.User;
 import com.tradesomev4.tradesomev4.m_Model.UserMessage;
 import com.tradesomev4.tradesomev4.m_UI.SendUserMesageAdapter;
 
@@ -62,11 +67,19 @@ public class SendUserMessage extends AppCompatActivity implements View.OnClickLi
 
         setContentView(R.layout.activity_send_user_message);
 
+        extras = getIntent().getBundleExtra(BUNDLE_EXTRA_KEY);
+        if(extras == null){
+            String posterId = (String)getIntent().getStringExtra(Keys.USER_ID_KEY);
+            extras.putString(Keys.USER_ID_KEY, posterId);
+        }
+
         initViewDb();
         messageCounter();
     }
 
     public void messageCounter(){
+        new IsBlockedListener(this, false, extras.getString(USER_ID_KEY));
+
         mDatabase.child("messages").child(fUser.getUid()).child(extras.getString(USER_ID_KEY)).addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -88,24 +101,35 @@ public class SendUserMessage extends AppCompatActivity implements View.OnClickLi
         tv_items_here.setVisibility(View.GONE);
         tv_internet_connection.setVisibility(View.GONE);
 
-        extras = getIntent().getBundleExtra(BUNDLE_EXTRA_KEY);
         fUser = FirebaseAuth.getInstance().getCurrentUser();
         mDatabase = FirebaseDatabase.getInstance().getReference();
 
-        String name = extras.getString(USER_NAME_KEY);
-        getSupportActionBar().setTitle(name);
-
-
-        boolean isAttache;
+        final boolean isAttache;
         onAttachedToWindow();
         isAttache = true;
 
-        recyclerView = (RecyclerView) findViewById(R.id.rv_send_user_message);
-        adapter = new SendUserMesageAdapter(this, extras.getString(USER_IMAGE_KEY), extras.getString(USER_ID_KEY), recyclerView, isAttache, Glide.with(this), tv_items_here, tv_internet_connection, progress_wheel, content_main);
-        recyclerView.setAdapter(adapter);
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
-        linearLayoutManager.setStackFromEnd(true);
-        recyclerView.setLayoutManager(linearLayoutManager);
+        final LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        final RequestManager glide = Glide.with(this);
+        final Context context = this;
+
+        mDatabase.child("users").child(extras.getString(USER_ID_KEY)).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                User user = dataSnapshot.getValue(User.class);
+                getSupportActionBar().setTitle(user.getName());
+
+                recyclerView = (RecyclerView) findViewById(R.id.rv_send_user_message);
+                adapter = new SendUserMesageAdapter(context, user.getImage(), extras.getString(USER_ID_KEY), recyclerView, isAttache, glide, tv_items_here, tv_internet_connection, progress_wheel, content_main);
+                recyclerView.setAdapter(adapter);
+                linearLayoutManager.setStackFromEnd(true);
+                recyclerView.setLayoutManager(linearLayoutManager);
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
 
         findViewById(R.id.bt_send).setOnClickListener(this);
@@ -135,14 +159,19 @@ public class SendUserMessage extends AppCompatActivity implements View.OnClickLi
     }
 
     public void addNotification(Notif notif){
-        mDatabase.child("users").child(extras.getString(USER_ID_KEY)).child("notifs").child(fUser.getUid()).setValue(notif);
+        String key = mDatabase.child("users").child(extras.getString(USER_ID_KEY)).child("notifsBackground").push().getKey();
+        notif.setKey(key);
+        notif.setReceived(false);
+        mDatabase.child("users").child(extras.getString(USER_ID_KEY)).child("notifsBackground").child(key).setValue(notif);
+
     }
 
-    public Notif newNotif(String type) {
+    public Notif newNotif   (String type) {
         Notif notif = new Notif();
         notif.setType(type);
         notif.setRead(false);
         notif.setDate(DateHelper.getCurrentDateInMil());
+        notif.setPosterId(fUser.getUid());
 
         return notif;
     }
@@ -177,8 +206,7 @@ public class SendUserMessage extends AppCompatActivity implements View.OnClickLi
                     mDatabase.updateChildren(childUpdate);
 
                     Notif notif = newNotif("message");
-                    notif.setContent("You have new message from " + fUser.getDisplayName() +  ".");
-                    notif.setKey(fUser.getUid());
+                    notif.setContent("New message from " + fUser.getDisplayName() +  ": " + messageStr);
                     addNotification(notif);
                 }
 

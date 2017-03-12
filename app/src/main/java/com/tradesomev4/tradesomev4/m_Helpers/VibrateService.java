@@ -7,9 +7,14 @@ import android.os.IBinder;
 import android.os.Vibrator;
 import android.widget.Toast;
 
-/**
- * Created by Pastillas-Boy on 9/14/2016.
- */
+
+/*
+* Created by: Joshua Alarcon, Jorge Benigno Pant, Charles Torrente on 9/14/2016.
+* File Name: VibrateService.java
+* File Path: Tradesomev4\app\src\main\java\com\tradesomev4\tradesomev4\m_Helpers\VibrateService.java
+* Desciption: Background process that will vibrate the phone if a new notification is received from Firebase.
+*/
+
 public class VibrateService  extends Service
 {
 

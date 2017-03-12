@@ -15,11 +15,20 @@ import com.tradesomev4.tradesomev4.ProfileFragments.UserFollowersFragment;
 import com.tradesomev4.tradesomev4.ProfileFragments.UserFollowingFragment;
 import com.tradesomev4.tradesomev4.ProfileFragments.UserProfileFragment;
 import com.tradesomev4.tradesomev4.m_Helpers.Connectivity;
+import com.tradesomev4.tradesomev4.m_Helpers.IsBlockedListener;
 import com.tradesomev4.tradesomev4.m_Helpers.SnackBars;
 
 import it.neokree.materialtabs.MaterialTab;
 import it.neokree.materialtabs.MaterialTabHost;
 import it.neokree.materialtabs.MaterialTabListener;
+
+
+/**
+ * Created by Jorge Benigno Pante, Charles Torrente, Joshua Alarcon on 7/17/2016.
+ * File name: ViewUserProfile.java
+ * File Path: Tradesomev4\app\src\main\java\com\tradesomev4\tradesomev4\ViewUserProfile.java
+ * Description: View other user's profile.
+ */
 
 public class ViewUserProfile extends AppCompatActivity implements MaterialTabListener{
     private static final String DEBUG_TAG = "DEBUG_TAG";
@@ -84,6 +93,7 @@ public class ViewUserProfile extends AppCompatActivity implements MaterialTabLis
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
 
+
         puta = 1;
         parentView = findViewById(R.id.content_main);
         snackBars = new SnackBars(parentView, getApplicationContext());
@@ -92,6 +102,8 @@ public class ViewUserProfile extends AppCompatActivity implements MaterialTabLis
 
         extras = getIntent().getBundleExtra(EXTRAS_BUNDLE);
         posterId = extras.getString(EXTRAS_POSTER_ID);
+
+        new IsBlockedListener(getApplicationContext(), false, posterId);
         Log.d("posterId", posterId);
 
 

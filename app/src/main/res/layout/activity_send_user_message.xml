@@ -72,7 +72,8 @@
             app:met_hideUnderline="true"
             android:layout_marginRight="8dp"
             android:singleLine="true"
-            app:met_maxCharacters="150"/>
+            app:met_maxCharacters="150"
+            android:inputType="textCapSentences"/>
 
         <ImageButton
             android:id="@+id/bt_send"

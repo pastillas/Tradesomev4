@@ -32,6 +32,7 @@ import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -45,10 +46,13 @@ import com.tradesomev4.tradesomev4.m_Helpers.DateHelper;
 import com.tradesomev4.tradesomev4.m_Helpers.SnackBars;
 import com.tradesomev4.tradesomev4.m_Model.Auction;
 import com.tradesomev4.tradesomev4.m_Model.AuctionHistory;
+import com.tradesomev4.tradesomev4.m_Model.Follower;
+import com.tradesomev4.tradesomev4.m_Model.Notif;
 import com.tradesomev4.tradesomev4.m_Model.User;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.HashMap;
@@ -93,9 +97,10 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
     View parentView;
     int puta;
     private static final String DEBUG_TAG = "DEBUG_TAG";
+    public ArrayList<Follower> followers;
 
 
-    public void timer(){
+    public void timer() {
         final CountDownTimer c = new CountDownTimer(1000, 1000) {
 
             @Override
@@ -106,14 +111,14 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
             public void onFinish() {
                 Connectivity connectivity = new Connectivity(getApplicationContext());
 
-                if(!connectivity.isConnected()) {
+                if (!connectivity.isConnected()) {
                     isConnectionRestoredShowed = false;
                     isConnected = false;
 
-                    if(puta == 1)
+                    if (puta == 1)
                         puta++;
 
-                    if(!isConnectionDisabledShowed){
+                    if (!isConnectionDisabledShowed) {
                         snackBars.showConnectionDisabledDialog();
                         isConnectionDisabledShowed = true;
                     }
@@ -121,7 +126,7 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
                     isConnected = true;
                     isConnectionDisabledShowed = false;
 
-                    if(puta != 1 && !isConnectionRestoredShowed){
+                    if (puta != 1 && !isConnectionRestoredShowed) {
                         snackBars.showConnectionRestored();
                         isConnectionRestoredShowed = true;
                     }
@@ -133,7 +138,7 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
     }
 
     class CustomSwip extends PagerAdapter {
-        private Uri imageResource[] = {compressUri1, compressUri2, compressUri3,compressUri4};
+        private Uri imageResource[] = {compressUri1, compressUri2, compressUri3, compressUri4};
         private Context ctx;
         private LayoutInflater layoutInflater;
 
@@ -175,8 +180,38 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
 
         @Override
         public boolean isViewFromObject(View view, Object object) {
-            return (view==object);
+            return (view == object);
         }
+    }
+
+    public void getFollowers() {
+        databaseReference.child("follower").child(fUser.getUid()).addChildEventListener(new ChildEventListener() {
+            @Override
+            public void onChildAdded(DataSnapshot dataSnapshot, String s) {
+                Follower follower = dataSnapshot.getValue(Follower.class);
+                followers.add(follower);
+            }
+
+            @Override
+            public void onChildChanged(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onChildRemoved(DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(DataSnapshot dataSnapshot, String s) {
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
     @Override
@@ -185,17 +220,17 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
         setContentView(R.layout.activity_review_and_publish);
         Bundle extras = getIntent().getExtras();
 
-
+        followers = new ArrayList<>();
         puta = 1;
         parentView = findViewById(R.id.content_main);
         snackBars = new SnackBars(parentView, getApplicationContext());
         isConnectionDisabledShowed = false;
         isConnectionRestoredShowed = false;
 
-        title = (TextView)findViewById(R.id.title);
-        startingBid = (TextView)findViewById(R.id.startingBid);
-        category = (TextView)findViewById(R.id.category);
-        details = (TextView)findViewById(R.id.details);
+        title = (TextView) findViewById(R.id.title);
+        startingBid = (TextView) findViewById(R.id.startingBid);
+        category = (TextView) findViewById(R.id.category);
+        details = (TextView) findViewById(R.id.details);
         findViewById(R.id.post).setOnClickListener(this);
 
         if (extras != null && extras.containsKey("image1")) {
@@ -212,7 +247,7 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
 
             categoryStr = extras.getString("categoryStr");
             category.setText(" " + categoryStr);
-            details.setText( "     " + descriptionStr);
+            details.setText("     " + descriptionStr);
         }
 
         Uri images[] = {compressUri1, compressUri2, compressUri3, compressUri4};
@@ -226,9 +261,10 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
         imagesReference = FirebaseStorage.getInstance().getReference();
         fUser = FirebaseAuth.getInstance().getCurrentUser();
         databaseReference = FirebaseDatabase.getInstance().getReference();
+        getFollowers();
         user = new User();
-        try{
-            if(fUser.getUid()!= null){
+        try {
+            if (fUser.getUid() != null) {
                 databaseReference.child("users").child(fUser.getUid()).addValueEventListener(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -241,7 +277,7 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
                     }
                 });
             }
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         failed = false;
@@ -251,12 +287,12 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
 
     @Override
     public void onBackPressed() {
-       back();
+        back();
 
         super.onBackPressed();
     }
 
-    public void back(){
+    public void back() {
         Intent intent = new Intent(getApplicationContext(), AuctionYourStuff.class);
         intent.putExtra("image1", compressUri1.toString());
         intent.putExtra("image2", compressUri2.toString());
@@ -307,7 +343,7 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
                                 if (choice.equals("POSITIVE")) {
                                     dialog.dismiss();
 
-                                    if(isConnected){
+                                    if (isConnected) {
                                         dialog2 = new MaterialDialog.Builder(ReviewAndPublish.this)
                                                 .title(R.string.upload_progress_dialog)
                                                 .content(R.string.please_wait)
@@ -318,7 +354,7 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
                                                 .show();
 
                                         uploadImage();
-                                    }else{
+                                    } else {
                                         showUploadFailed();
                                     }
                                 }
@@ -329,7 +365,7 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
         }
     }
 
-    public void showUploadFailed(){
+    public void showUploadFailed() {
         dialog2 = new MaterialDialog.Builder(ReviewAndPublish.this)
                 .title("Upload failed")
                 .content("Please check your connection and try again later.")
@@ -477,7 +513,7 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
 
     boolean failed;
 
-    public void saveToDatabase(final String image1Uri, final String image2Uri, final String image3Uri, final String image4Uri, final String uid, final String directoryName){
+    public void saveToDatabase(final String image1Uri, final String image2Uri, final String image3Uri, final String image4Uri, final String uid, final String directoryName) {
         final DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
         final String key = mDatabase.child("auction").push().getKey();
 
@@ -492,18 +528,21 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
         childUpdates.put("/auction/" + key, postValues);
 
         AuctionHistory auctionHistory = new AuctionHistory(uid, key);
-        Map<String, Object>auctionHisVal = auctionHistory.toMap();
+        Map<String, Object> auctionHisVal = auctionHistory.toMap();
 
         childUpdates.put("/auctionHistory/" + uid + "/" + key, auctionHisVal);
         mDatabase.updateChildren(childUpdates).addOnCompleteListener(new OnCompleteListener<Void>() {
             @Override
             public void onComplete(@NonNull Task<Void> task) {
-                dialog2.dismiss();
+
                 mDatabase.child("auction").child(key).child("participants").child(fUser.getUid()).child("id").setValue(fUser.getUid());
                 Toast.makeText(getApplicationContext(), "Success!", Toast.LENGTH_SHORT).show();
 
-                if(!failed){
-                    Intent intent = new Intent(getApplicationContext(),     MainActivity.class);
+                if (!failed) {
+                    Notif notif = newNotif("bid", key);
+                    addNotification(notif);
+                    dialog2.dismiss();
+                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
                     startActivity(intent);
                 }
             }
@@ -517,4 +556,34 @@ public class ReviewAndPublish extends AppCompatActivity implements View.OnClickL
         });
 
     }
+
+    public void addNotification(Notif notif) {
+        for (int i = 0; i < followers.size(); i++) {
+            Follower follower = followers.get(i);
+
+            if (!follower.getId().equals(fUser.getUid())) {
+                notif.setKey(notif.getAuctionId());
+                databaseReference.child("users").child(follower.getId()).child("notifs").child(notif.getAuctionId()).setValue(notif);
+                String key = databaseReference.child("users").child(follower.getId()).child("notifsBackground").push().getKey();
+                notif.setKey(key);
+                databaseReference.child("users").child(follower.getId()).child("notifsBackground").child(notif.getKey()).setValue(notif);
+
+            }
+        }
+    }
+
+    public Notif newNotif(String type, String auctionId) {
+        Notif notif = new Notif();
+        notif.setType(type);
+        notif.setAuctionId(auctionId);
+        notif.setBidderId(fUser.getUid());
+        notif.setRead(false);
+        notif.setDate(DateHelper.getCurrentDateInMil());
+        notif.setReceived(false);
+        notif.setPosterId(fUser.getUid());
+        notif.setContent(fUser.getDisplayName() + " posted an item for auction.");
+
+        return notif;
+    }
+
 }

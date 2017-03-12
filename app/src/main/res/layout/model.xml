@@ -139,36 +139,10 @@
                     android:paddingTop="2dp">
 
                     <TextView
-                        android:id="@+id/textView4"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Distance: "
-                        android:textAppearance="?android:attr/textAppearanceMedium"
-                        android:theme="@style/detailTextSize" />
-
-                    <TextView
-                        android:id="@+id/tv_distance"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textAppearance="?android:attr/textAppearanceMedium"
-                        android:theme="@style/detailTextSize" />
-
-
-                </LinearLayout>
-
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:paddingTop="2dp">
-
-                    <TextView
                         android:id="@+id/textView7"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Current bid: "
+                        android:text="Minimum bid: "
                         android:textAppearance="?android:attr/textAppearanceMedium"
                         android:theme="@style/detailTextSize"/>
 
@@ -207,9 +181,6 @@
 
 
                 </LinearLayout>
-
-
-
 
             </LinearLayout>
 

@@ -16,7 +16,10 @@ import com.tradesomev4.tradesomev4.R;
 import com.tradesomev4.tradesomev4.m_UI.MyBidsAdapter;
 
 /**
- * Created by Pastillas-Boy on 7/24/2016.
+ * Created by Jorge Benigno Pante, Joshua Alarcon, Charles Torrente on 7/24/2016.
+ * File Name: MyBidsFragment.java
+ * File Path: Tradesomev4\app\src\main\java\com\tradesomev4\tradesomev4\AuctionBidFragment\MyBidsFragment.java
+ * Description: fetch and display all my bade items.
  */
 public class MyBidsFragment extends Fragment {
     private RecyclerView rv;

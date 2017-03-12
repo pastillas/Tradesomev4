@@ -13,11 +13,12 @@ public class ItemComplain {
     String beingComplainedId;
     String key;
     String dateComplained;
+    boolean evaluated;
 
     public ItemComplain() {
     }
 
-    public ItemComplain(String reason, String detailedReason, String auctionId, String complainerId, String beingComplainedId, String key, String dateComplained) {
+    public ItemComplain(String reason, String detailedReason, String auctionId, String complainerId, String beingComplainedId, String key, String dateComplained, boolean evaluated) {
         this.reason = reason;
         this.detailedReason = detailedReason;
         this.auctionId = auctionId;
@@ -25,6 +26,7 @@ public class ItemComplain {
         this.beingComplainedId = beingComplainedId;
         this.key = key;
         this.dateComplained = dateComplained;
+        this.evaluated = evaluated;
     }
 
     public HashMap<String, Object>toMap(){
@@ -37,8 +39,17 @@ public class ItemComplain {
         map.put("beingComplainedId", beingComplainedId);
         map.put("key", key);
         map.put("dateComplained", dateComplained);
+        map.put("evaluated", evaluated);
 
         return map;
+    }
+
+    public boolean isEvaluated() {
+        return evaluated;
+    }
+
+    public void setEvaluated(boolean evaluated) {
+        this.evaluated = evaluated;
     }
 
     public String getReason() {

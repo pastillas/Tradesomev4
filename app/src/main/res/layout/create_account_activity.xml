@@ -88,17 +88,6 @@
 
                 </LinearLayout>
 
-                <com.facebook.login.widget.LoginButton
-                    xmlns:facebook="http://schemas.android.com/apk/res-auto"
-                    facebook:com_facebook_login_text="Log in with Facebook"
-                    android:id="@+id/fbSignInB"
-                    android:layout_width="247dp"
-                    android:layout_height="200dp"
-                    android:layout_gravity="center_horizontal"
-                    android:elevation="3dp"
-                    android:paddingBottom="13dp"
-                    android:paddingTop="13dp" />
-
                 <com.google.android.gms.common.SignInButton
                     android:id="@+id/signInButton"
                     android:layout_width="250dp"

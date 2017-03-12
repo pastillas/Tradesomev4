@@ -286,7 +286,6 @@ public class SendUserMesageAdapter extends RecyclerView.Adapter<SendUserMesageAd
 
     @Override
     public void onBindViewHolder(UserViewHolder holder, final int position) {
-        AnimationUtil.setFadeAnimation(holder.itemView);
         if (getItemViewType(position) == HEADER_VIEW) {
             CurrentUserHolder mHolder = (CurrentUserHolder) holder;
             mHolder.message.setText(messages.get(position).getMessage());
